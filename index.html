@@ -1,0 +1,4326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>OuDiaSecond Viewer</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+    --line:#dce2e7;
+    --soft:#f6f8fa;
+    --ink:#1e2730;
+    --muted:#687681;
+    --accent:#2867d8;
+    --accentSoft:#eaf1ff;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;
+    color:var(--ink);
+    background:var(--soft);
+}
+
+body{
+    display:flex;
+    flex-direction:column;
+}
+
+.appHeader{
+    height:58px;
+    flex-shrink:0;
+    padding:0 14px;
+    background:#18212a;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 1px 0 rgba(0,0,0,.12);
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+
+.brandMark{
+    width:32px;
+    height:32px;
+    border-radius:9px;
+    display:grid;
+    place-items:center;
+    background:#fff;
+    color:#18212a;
+    font-weight:800;
+}
+
+.appHeader h1{
+    font-size:14px;
+    margin:0;
+    color:#fff;
+}
+
+.subTitle{
+    font-size:10px;
+    color:#aeb9c2;
+    margin-top:2px;
+    max-width:48vw;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.headerActions{
+    display:flex;
+    gap:6px;
+}
+
+.ghostButton{
+    height:30px;
+    background:transparent;
+    color:#dbe3e9;
+    border:1px solid #44515c;
+    border-radius:7px;
+    font-size:11px;
+    padding:0 9px;
+}
+
+.toolbar{
+    min-height:58px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+    padding:7px 9px;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    box-shadow:0 2px 8px rgba(25,40,55,.04);
+}
+
+.controlGroup{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    height:34px;
+    padding:3px 6px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+}
+
+.controlGroup.compact{
+    padding:3px 4px;
+}
+
+.controlLabel{
+    font-size:10px;
+    color:var(--muted);
+    white-space:nowrap;
+    font-weight:600;
+}
+
+.primaryButton{
+    height:32px;
+    padding:0 10px;
+    border-radius:8px;
+    background:var(--accent);
+    color:#fff;
+    display:inline-flex;
+    align-items:center;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:700;
+}
+
+.primaryButton input{
+    display:none;
+}
+
+.toolbar select,
+.toolbar input[type=number]{
+    height:28px;
+    border:0;
+    outline:0;
+    background:transparent;
+    padding:0 4px;
+    font-size:11px;
+}
+
+.toolbar select{
+    min-width:100px;
+}
+
+.toolbar input[type=number]{
+    width:48px;
+    text-align:center;
+}
+
+.percent{
+    font-size:10px;
+    color:var(--muted);
+}
+
+.iconButton{
+    width:27px;
+    height:27px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    padding:0;
+    font-size:15px;
+    line-height:1;
+    color:#34414c;
+    cursor:pointer;
+}
+
+.iconButton:hover{
+    background:var(--soft);
+    border-color:#b9c4cc;
+}
+
+.segmented{
+    display:flex;
+    gap:2px;
+    padding:3px;
+    background:#edf1f4;
+    border-radius:8px;
+}
+
+.segment{
+    height:28px;
+    border:0;
+    border-radius:6px;
+    padding:0 10px;
+    background:transparent;
+    font-size:11px;
+    color:#65727d;
+    cursor:pointer;
+}
+
+.segment.active{
+    background:#fff;
+    color:var(--accent);
+    font-weight:700;
+    box-shadow:0 1px 3px rgba(25,40,55,.1);
+}
+
+.ratioValue{
+    min-width:54px;
+    text-align:center;
+    font-size:10px;
+    color:#52606b;
+}
+
+.legend{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex:1;
+    min-width:120px;
+    overflow:hidden;
+}
+
+.legendItem{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    white-space:nowrap;
+    font-size:10px;
+}
+
+.legendLine{
+    width:15px;
+    height:3px;
+}
+
+.statusPill{
+    font-size:10px;
+    color:#65727d;
+    padding:5px 8px;
+    border-radius:99px;
+    background:#f0f3f5;
+    white-space:nowrap;
+}
+
+.main{
+    min-height:0;
+    flex:1;
+    display:grid;
+    grid-template-columns:210px 1fr;
+}
+
+.sidebar{
+    min-height:0;
+    background:#fff;
+    border-right:1px solid var(--line);
+    overflow-y:auto;
+}
+
+.sidebarTitle{
+    position:sticky;
+    top:0;
+    z-index:10;
+    padding:10px 11px;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    font-size:11px;
+    font-weight:700;
+}
+
+.station{
+    display:flex;
+    padding:7px 8px;
+    border-bottom:1px solid #f0f2f3;
+    font-size:11px;
+    gap:2px;
+    cursor:pointer;
+}
+
+.station:hover{
+    background:var(--accentSoft);
+}
+
+.stationNumber{
+    width:28px;
+    flex-shrink:0;
+    text-align:right;
+    margin-right:7px;
+    color:#9aa5ad;
+}
+
+.stationName{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.content{
+    min-width:0;
+    min-height:0;
+    background:#fff;
+}
+
+#diagramContainer{
+    width:100%;
+    height:100%;
+    overflow:auto;
+    position:relative;
+    -webkit-overflow-scrolling:touch;
+    background:#fff;
+}
+
+#diagram{
+    display:block;
+}
+
+#empty{
+    padding:30px;
+    color:#6c7881;
+    font-size:13px;
+}
+
+#trainInfo{
+    display:none;
+    position:fixed;
+    z-index:100;
+    top:100px;
+    right:8px;
+    width:min(300px,calc(100vw - 16px));
+    padding:11px;
+    background:rgba(255,255,255,.97);
+    border:1px solid #cfd5da;
+    border-radius:10px;
+    box-shadow:0 8px 28px rgba(20,35,50,.16);
+    font-size:11px;
+}
+
+#trainInfoTitle{
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:7px;
+}
+
+.infoLine{
+    margin:3px 0;
+}
+
+.muted{
+    color:#6d7880;
+}
+
+#tableContainer{
+    width:100%;
+    height:100%;
+    overflow:auto;
+    padding:10px;
+}
+
+table{
+    border-collapse:collapse;
+    width:max-content;
+    min-width:100%;
+    font-size:11px;
+}
+
+th,td{
+    border:1px solid #d9dee2;
+    padding:7px 8px;
+    white-space:nowrap;
+    text-align:left;
+}
+
+th{
+    position:sticky;
+    top:0;
+    z-index:5;
+    background:#f1f4f6;
+}
+
+tr.trainRow{
+    cursor:pointer;
+}
+
+tr.trainRow:hover{
+    background:var(--accentSoft);
+}
+
+@media(max-width:900px){
+
+    .toolbar{
+        overflow-x:auto;
+        flex-wrap:nowrap;
+        scrollbar-width:none;
+    }
+
+    .toolbar::-webkit-scrollbar{
+        display:none;
+    }
+
+    .legend,
+    .statusPill{
+        display:none;
+    }
+
+    .main{
+        grid-template-columns:155px 1fr;
+    }
+
+    .appHeader{
+        height:52px;
+    }
+
+    .ghostButton{
+        display:none;
+    }
+
+    .ratioControl{
+        display:none;
+    }
+}
+
+@media(max-width:600px){
+
+    .main{
+        grid-template-columns:128px 1fr;
+    }
+
+    .sidebarTitle{
+        font-size:10px;
+    }
+
+    .station{
+        font-size:10px;
+        padding:6px 4px;
+    }
+
+    .brandMark{
+        width:28px;
+        height:28px;
+    }
+
+    .appHeader h1{
+        font-size:12px;
+    }
+
+    .subTitle{
+        font-size:9px;
+    }
+
+    .toolbar{
+        min-height:54px;
+    }
+
+    .primaryButton{
+        padding:0 8px;
+    }
+
+    .segment{
+        padding:0 8px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header class="appHeader">
+
+    <div class="brand">
+
+        <div class="brandMark">時</div>
+
+        <div>
+            <h1>OuDiaSecond Viewer</h1>
+            <div class="subTitle" id="fileName">
+                ファイル未選択
+            </div>
+        </div>
+
+    </div>
+
+    <div class="headerActions">
+        <button
+            class="ghostButton"
+            id="resetViewButton"
+            type="button">
+            表示をリセット
+        </button>
+    </div>
+
+</header>
+
+
+<div class="toolbar">
+
+    <div class="controlGroup">
+
+        <label class="primaryButton">
+
+            <span>＋ .oud2を開く</span>
+
+            <input
+                id="fileInput"
+                type="file"
+                accept=".oud2,.oud,.txt">
+
+        </label>
+
+    </div>
+
+
+    <div class="controlGroup">
+
+        <span class="controlLabel">
+            ダイヤ
+        </span>
+
+        <select id="diaSelect" disabled></select>
+
+    </div>
+
+
+    <!-- =====================================================
+         方向
+    ====================================================== -->
+
+    <div class="segmented">
+
+        <button
+            type="button"
+            class="segment active"
+            data-direction="Kudari">
+            下り
+        </button>
+
+        <button
+            type="button"
+            class="segment"
+            data-direction="Nobori">
+            上り
+        </button>
+
+        <button
+            type="button"
+            class="segment"
+            data-direction="Both">
+            両方
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         表示
+    ====================================================== -->
+
+    <div class="segmented">
+
+        <button
+            type="button"
+            class="segment active"
+            data-view="diagram">
+            ダイヤ
+        </button>
+
+        <button
+            type="button"
+            class="segment"
+            data-view="table">
+            列車一覧
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         ズーム
+    ====================================================== -->
+
+    <div class="controlGroup compact">
+
+        <span class="controlLabel">
+            拡大
+        </span>
+
+        <button
+            type="button"
+            class="iconButton"
+            id="zoomMinus">
+            −
+        </button>
+
+        <input
+            id="zoomInput"
+            type="number"
+            value="100"
+            min="50"
+            max="300"
+            step="10">
+
+        <span class="percent">%</span>
+
+        <button
+            type="button"
+            class="iconButton"
+            id="zoomPlus">
+            ＋
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         横比率
+    ====================================================== -->
+
+    <div class="controlGroup compact ratioControl">
+
+        <span class="controlLabel">
+            横
+        </span>
+
+        <button
+            id="horizontalMinus"
+            class="iconButton">
+            −
+        </button>
+
+        <span
+            id="horizontalValue"
+            class="ratioValue">
+            12 px/分
+        </span>
+
+        <button
+            id="horizontalPlus"
+            class="iconButton">
+            ＋
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         縦比率
+    ====================================================== -->
+
+    <div class="controlGroup compact ratioControl">
+
+        <span class="controlLabel">
+            縦
+        </span>
+
+        <button
+            id="verticalMinus"
+            class="iconButton">
+            −
+        </button>
+
+        <span
+            id="verticalValue"
+            class="ratioValue">
+            12 px/分
+        </span>
+
+        <button
+            id="verticalPlus"
+            class="iconButton">
+            ＋
+        </button>
+
+    </div>
+
+
+    <div id="legend" class="legend"></div>
+
+    <span
+        id="status"
+        class="statusPill">
+        .oud2ファイルを選択してください
+    </span>
+
+</div>
+
+
+<div class="main">
+
+    <aside class="sidebar">
+
+        <div
+            class="sidebarTitle"
+            id="sidebarTitle">
+            駅一覧
+        </div>
+
+        <div id="stationList"></div>
+
+    </aside>
+
+
+    <section class="content">
+
+        <div id="diagramContainer">
+
+            <div id="empty">
+                .oud2ファイルを読み込んでください。
+            </div>
+
+            <svg
+                id="diagram"
+                xmlns="http://www.w3.org/2000/svg">
+            </svg>
+
+            <div id="trainInfo">
+
+                <div id="trainInfoTitle"></div>
+
+                <div id="trainInfoBody"></div>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="tableContainer"
+            style="display:none">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>No.</th>
+                        <th>種別</th>
+                        <th>方向</th>
+                        <th>列車情報</th>
+                        <th>始発</th>
+                        <th>終着</th>
+                        <th>時刻数</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="trainTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   DATABASE
+========================================================= */
+
+let database=null;
+
+
+/* =========================================================
+   RATIO
+========================================================= */
+
+let verticalRatio=12;
+let horizontalRatio=12;
+
+const ratioStep=2;
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const fileInput=
+    document.getElementById("fileInput");
+
+const fileName=
+    document.getElementById("fileName");
+
+const diaSelect=
+    document.getElementById("diaSelect");
+
+const stationList=
+    document.getElementById("stationList");
+
+const sidebarTitle=
+    document.getElementById("sidebarTitle");
+
+const diagramContainer=
+    document.getElementById("diagramContainer");
+
+const diagram=
+    document.getElementById("diagram");
+
+const tableContainer=
+    document.getElementById("tableContainer");
+
+const trainTable=
+    document.getElementById("trainTable");
+
+const trainInfo=
+    document.getElementById("trainInfo");
+
+const trainInfoTitle=
+    document.getElementById("trainInfoTitle");
+
+const trainInfoBody=
+    document.getElementById("trainInfoBody");
+
+const legend=
+    document.getElementById("legend");
+
+const status=
+    document.getElementById("status");
+
+const empty=
+    document.getElementById("empty");
+
+const zoomInput=
+    document.getElementById("zoomInput");
+
+const horizontalValue=
+    document.getElementById("horizontalValue");
+
+const verticalValue=
+    document.getElementById("verticalValue");
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let currentDirection="Kudari";
+let currentView="diagram";
+
+
+/* =========================================================
+   RATIO UI
+========================================================= */
+
+function updateRatioUI(){
+
+    horizontalValue.textContent=
+        horizontalRatio+" px/分";
+
+    verticalValue.textContent=
+        verticalRatio+" px/分";
+
+}
+
+
+/* =========================================================
+   RATIO EVENTS
+========================================================= */
+
+document
+.getElementById("horizontalMinus")
+.addEventListener("click",function(){
+
+    horizontalRatio=
+        Math.max(
+            1,
+            horizontalRatio-ratioStep
+        );
+
+    updateRatioUI();
+
+    if(database)render();
+
+});
+
+
+document
+.getElementById("horizontalPlus")
+.addEventListener("click",function(){
+
+    horizontalRatio+=ratioStep;
+
+    updateRatioUI();
+
+    if(database)render();
+
+});
+
+
+document
+.getElementById("verticalMinus")
+.addEventListener("click",function(){
+
+    verticalRatio=
+        Math.max(
+            1,
+            verticalRatio-ratioStep
+        );
+
+    updateRatioUI();
+
+    if(database)render();
+
+});
+
+
+document
+.getElementById("verticalPlus")
+.addEventListener("click",function(){
+
+    verticalRatio+=ratioStep;
+
+    updateRatioUI();
+
+    if(database)render();
+
+});
+
+
+updateRatioUI();
+
+
+/* =========================================================
+   FILE
+========================================================= */
+
+fileInput.addEventListener(
+    "change",
+    async function(){
+
+        const file=this.files[0];
+
+        if(!file)return;
+
+        try{
+
+            status.textContent=
+                "読み込み中...";
+
+            const buffer=
+                await file.arrayBuffer();
+
+            const text=
+                decodeOudFile(buffer);
+
+            database=
+                parseOudFile(text);
+
+            fileName.textContent=
+                file.name;
+
+            setupUI();
+
+            render();
+
+        }catch(error){
+
+            console.error(error);
+
+            status.textContent=
+                "解析エラー: "+
+                error.message;
+
+            alert(
+                "ファイルの解析に失敗しました。\n\n"+
+                error.message
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ENCODING
+========================================================= */
+
+function decodeOudFile(buffer){
+
+    const bytes=
+        new Uint8Array(buffer);
+
+    if(
+        bytes[0]===0xEF &&
+        bytes[1]===0xBB &&
+        bytes[2]===0xBF
+    ){
+
+        return new TextDecoder(
+            "utf-8"
+        ).decode(buffer);
+
+    }
+
+    const utf8=
+        new TextDecoder(
+            "utf-8"
+        ).decode(buffer);
+
+    if(
+        utf8.includes(
+            "FileType=OuDiaSecond"
+        )
+    ){
+
+        return utf8;
+
+    }
+
+    return new TextDecoder(
+        "shift-jis"
+    ).decode(buffer);
+
+}
+
+
+/* =========================================================
+   BASIC PARSER
+========================================================= */
+
+function splitLines(text){
+
+    return text
+        .replace(/\r\n/g,"\n")
+        .replace(/\r/g,"\n")
+        .split("\n");
+
+}
+
+
+function parseKeyValue(line){
+
+    const pos=
+        line.indexOf("=");
+
+    if(pos<0)return null;
+
+    return{
+        key:line.substring(0,pos),
+        value:line.substring(pos+1)
+    };
+
+}
+
+
+function readSimpleBlock(lines,startIndex){
+
+    const object={};
+
+    let i=startIndex+1;
+
+    for(;i<lines.length;i++){
+
+        if(lines[i]===".")break;
+
+        const pair=
+            parseKeyValue(lines[i]);
+
+        if(pair){
+            object[pair.key]=pair.value;
+        }
+
+    }
+
+    return{
+        object,
+        end:i
+    };
+
+}
+
+
+/* =========================================================
+   ROUTE
+========================================================= */
+
+function parseRouteInfo(lines){
+
+    const route={
+        name:"",
+        kudariAlias:"",
+        noboriAlias:""
+    };
+
+    for(let i=0;i<lines.length;i++){
+
+        if(lines[i]!=="Rosen.")continue;
+
+        const result=
+            readSimpleBlock(lines,i);
+
+        route.name=
+            result.object.Rosenmei||"";
+
+        route.kudariAlias=
+            result.object.KudariDiaAlias||"";
+
+        route.noboriAlias=
+            result.object.NoboriDiaAlias||"";
+
+        break;
+
+    }
+
+    return route;
+
+}
+
+
+/* =========================================================
+   STATIONS
+========================================================= */
+
+function parseStations(lines){
+
+    const stations=[];
+
+    for(let i=0;i<lines.length;i++){
+
+        if(lines[i]!=="Eki.")continue;
+
+        const result=
+            readSimpleBlock(lines,i);
+
+        const o=result.object;
+
+        if(!o.Ekimei)continue;
+
+        let branchCoreIndex=null;
+
+        if(
+            o.BrunchCoreEkiIndex!==undefined &&
+            /^\d+$/.test(
+                String(
+                    o.BrunchCoreEkiIndex
+                ).trim()
+            )
+        ){
+
+            branchCoreIndex=
+                Number(
+                    o.BrunchCoreEkiIndex
+                );
+
+        }
+
+        let loopOriginIndex=null;
+
+        if(
+            o.LoopOriginEkiIndex!==undefined &&
+            /^\d+$/.test(
+                String(
+                    o.LoopOriginEkiIndex
+                ).trim()
+            )
+        ){
+
+            loopOriginIndex=
+                Number(
+                    o.LoopOriginEkiIndex
+                );
+
+        }
+
+        stations.push({
+
+            index:stations.length,
+
+            name:o.Ekimei,
+
+            timeFormat:
+                o.Ekijikokukeisiki||"",
+
+            scale:
+                o.Ekikibo||"",
+
+            downMain:
+                o.DownMain||"0",
+
+            upMain:
+                o.UpMain||"0",
+
+            hidden:
+                o.Hidden==="1",
+
+            branchCoreIndex,
+
+            loopOriginIndex,
+
+            raw:o
+
+        });
+
+        i=result.end;
+
+    }
+
+
+    stations.forEach(function(station){
+
+        if(
+            station.branchCoreIndex!==null &&
+            (
+                station.branchCoreIndex<0 ||
+                station.branchCoreIndex>=stations.length ||
+                station.branchCoreIndex===station.index
+            )
+        ){
+
+            station.branchCoreIndex=null;
+
+        }
+
+    });
+
+    return stations;
+
+}
+
+
+/* =========================================================
+   TRAIN TYPES
+========================================================= */
+
+function parseTrainTypes(lines){
+
+    const types=[];
+
+    for(let i=0;i<lines.length;i++){
+
+        if(
+            lines[i]!=="Ressyasyubetsu."
+        )continue;
+
+        const result=
+            readSimpleBlock(lines,i);
+
+        const o=result.object;
+
+        types.push({
+
+            index:types.length,
+
+            name:
+                o.Syubetsumei||"",
+
+            short:
+                o.Ryakusyou||
+                o.Syubetsumei||
+                "",
+
+            textColor:
+                oudiaColor(
+                    o.JikokuhyouMojiColor
+                ),
+
+            diagramColor:
+                oudiaColor(
+                    o.DiagramSenColor
+                ),
+
+            lineStyle:
+                o.DiagramSenStyle||"",
+
+            stopMark:
+                o.StopMarkDrawType||"",
+
+            hidden:
+                o.Hidden==="1",
+
+            raw:o
+
+        });
+
+        i=result.end;
+
+    }
+
+    return types;
+
+}
+
+
+/* =========================================================
+   COLOR
+========================================================= */
+
+function oudiaColor(value){
+
+    if(!value)return"#333333";
+
+    let v=
+        String(value)
+            .replace(/^0x/i,"")
+            .padStart(8,"0");
+
+    const rr=v.substring(6,8);
+    const gg=v.substring(4,6);
+    const bb=v.substring(2,4);
+
+    return"#"+rr+gg+bb;
+
+}
+
+
+/* =========================================================
+   TIME
+========================================================= */
+
+function parseTimeNumber(value){
+
+    if(
+        value===undefined ||
+        value===null ||
+        value===""
+    ){
+        return null;
+    }
+
+    let s=
+        String(value).trim();
+
+    if(!/^\d+$/.test(s)){
+        return null;
+    }
+
+    let hour;
+    let minute;
+
+    if(s.length===6){
+
+        hour=
+            Number(
+                s.substring(0,2)
+            );
+
+        minute=
+            Number(
+                s.substring(2,4)
+            );
+
+    }else{
+
+        s=
+            s.padStart(4,"0");
+
+        if(s.length!==4){
+            return null;
+        }
+
+        hour=
+            Number(
+                s.substring(0,2)
+            );
+
+        minute=
+            Number(
+                s.substring(2,4)
+            );
+
+    }
+
+    if(
+        !Number.isFinite(hour) ||
+        !Number.isFinite(minute) ||
+        minute<0 ||
+        minute>59
+    ){
+        return null;
+    }
+
+    /*
+     * OuDia の 00～01時帯を
+     * 翌日扱いに寄せる。
+     */
+
+    if(hour<2){
+        hour+=24;
+    }
+
+    if(hour>26){
+        return null;
+    }
+
+    return hour*60+minute;
+
+}
+
+
+/* =========================================================
+   EKI JIKOKU
+========================================================= */
+
+function parseEkiJikoku(value){
+
+    return String(value??"")
+        .split(",")
+        .map(function(cell){
+
+            cell=cell.trim();
+
+            if(!cell){
+
+                return{
+                    exists:false,
+                    passed:false,
+                    handling:null,
+                    arrival:null,
+                    departure:null,
+                    track:null,
+                    raw:""
+                };
+
+            }
+
+            let handling=null;
+            let timePart=cell;
+
+            const semicolon=
+                cell.indexOf(";");
+
+            if(semicolon>=0){
+
+                const handlingText=
+                    cell.substring(
+                        0,
+                        semicolon
+                    );
+
+                handling=
+                    /^\d+$/.test(
+                        handlingText
+                    )
+                    ? Number(
+                        handlingText
+                    )
+                    : handlingText;
+
+                timePart=
+                    cell.substring(
+                        semicolon+1
+                    );
+
+            }
+
+            let track=null;
+
+            const dollar=
+                timePart.indexOf("$");
+
+            if(dollar>=0){
+
+                const trackText=
+                    timePart.substring(
+                        dollar+1
+                    );
+
+                if(
+                    /^\d+$/.test(trackText)
+                ){
+
+                    track=
+                        Number(trackText);
+
+                }
+
+                timePart=
+                    timePart.substring(
+                        0,
+                        dollar
+                    );
+
+            }
+
+            let arrival=null;
+            let departure=null;
+
+            const hasSlash=
+                timePart.includes("/");
+
+            /*
+             * 例:
+             *
+             * 2$0
+             *
+             * のような通過表現。
+             */
+
+            const isPassOnly=
+                dollar>=0 &&
+                !hasSlash &&
+                (
+                    handling===2 ||
+                    timePart==="2"
+                );
+
+            if(!isPassOnly){
+
+                if(hasSlash){
+
+                    const parts=
+                        timePart.split("/");
+
+                    arrival=
+                        parts[0]
+                        ? parseTimeNumber(parts[0])
+                        : null;
+
+                    departure=
+                        parts[1]
+                        ? parseTimeNumber(parts[1])
+                        : null;
+
+                }else{
+
+                    if(timePart!==""){
+
+                        const t=
+                            parseTimeNumber(
+                                timePart
+                            );
+
+                        arrival=t;
+                        departure=t;
+
+                    }
+
+                }
+
+            }
+
+            const passed=
+                arrival===null &&
+                departure===null;
+
+            return{
+
+                exists:true,
+
+                passed,
+
+                handling,
+
+                arrival,
+
+                departure,
+
+                track,
+
+                raw:cell
+
+            };
+
+        });
+
+}
+
+
+/* =========================================================
+   DIAS
+========================================================= */
+
+function parseDias(lines){
+
+    const dias=[];
+
+    for(let i=0;i<lines.length;i++){
+
+        if(lines[i]!=="Dia.")continue;
+
+        const dia={
+            name:"",
+            trains:[]
+        };
+
+        let direction="";
+        let j=i+1;
+
+        while(
+            j<lines.length &&
+            lines[j]!=="Dia."
+        ){
+
+            if(lines[j]==="Kudari."){
+
+                direction="Kudari";
+
+                j++;
+
+                continue;
+
+            }
+
+            if(lines[j]==="Nobori."){
+
+                direction="Nobori";
+
+                j++;
+
+                continue;
+
+            }
+
+            if(lines[j]==="Ressya."){
+
+                const result=
+                    readSimpleBlock(
+                        lines,
+                        j
+                    );
+
+                const o=result.object;
+
+                if(o.EkiJikoku){
+
+                    const train={
+
+                        index:
+                            dia.trains.length,
+
+                        direction:
+                            o.Houkou||
+                            direction,
+
+                        typeIndex:
+                            Number(
+                                o.Syubetsu??0
+                            ),
+
+                        times:
+                            parseEkiJikoku(
+                                o.EkiJikoku
+                            ),
+
+                        operations:{},
+
+                        raw:o
+
+                    };
+
+                    Object.keys(o)
+                        .forEach(function(key){
+
+                            if(
+                                key.startsWith(
+                                    "Operation"
+                                )
+                            ){
+
+                                train.operations[key]=
+                                    o[key];
+
+                            }
+
+                        });
+
+                    dia.trains.push(train);
+
+                }
+
+                j=
+                    result.end+1;
+
+                continue;
+
+            }
+
+            const pair=
+                parseKeyValue(lines[j]);
+
+            if(
+                pair &&
+                pair.key==="DiaName"
+            ){
+
+                dia.name=
+                    pair.value;
+
+            }
+
+            j++;
+
+        }
+
+        dias.push(dia);
+
+        i=
+            Math.max(
+                i+1,
+                j-1
+            );
+
+    }
+
+    return dias;
+
+}
+
+
+/* =========================================================
+   FULL PARSE
+========================================================= */
+
+function parseOudFile(text){
+
+    const lines=
+        splitLines(text);
+
+    return{
+
+        route:
+            parseRouteInfo(lines),
+
+        stations:
+            parseStations(lines),
+
+        types:
+            parseTrainTypes(lines),
+
+        dias:
+            parseDias(lines),
+
+        rawText:text
+
+    };
+
+}
+
+
+/* =========================================================
+   BRANCH
+========================================================= */
+
+function getBranchRoot(index){
+
+    if(
+        !database ||
+        !database.stations[index]
+    ){
+        return index;
+    }
+
+    let current=index;
+    const visited=new Set();
+
+    while(
+        database.stations[current] &&
+        database.stations[current]
+            .branchCoreIndex!==null &&
+        !visited.has(current)
+    ){
+
+        visited.add(current);
+
+        const next=
+            database.stations[current]
+                .branchCoreIndex;
+
+        if(
+            next===null ||
+            next===undefined ||
+            !database.stations[next]
+        ){
+            break;
+        }
+
+        current=next;
+
+    }
+
+    return current;
+
+}
+
+
+function sameBranchStation(a,b){
+
+    if(a===b)return false;
+
+    return(
+        getBranchRoot(a)===
+        getBranchRoot(b)
+    );
+
+}
+
+
+/* =========================================================
+   DIRECTION HELPERS
+========================================================= */
+
+/*
+ * ここが今回の重要部分。
+ *
+ * 内部データの駅番号は常に
+ *
+ *   0 → 1 → 2 → 3 ...
+ *
+ * つまり「下り方向」。
+ *
+ * 上り列車は元データでは
+ *
+ *   3 → 2 → 1 → 0
+ *
+ * の順になるが、
+ *
+ * 描画座標では
+ *
+ *   0 → 1 → 2 → 3
+ *
+ * に変換する。
+ *
+ * これによって、
+ *
+ * 下りだけ
+ * 上りだけ
+ * 両方
+ *
+ * すべて同じ「上→下」の画面になる。
+ */
+
+
+/*
+ * 上り列車の元データ駅番号を
+ * 下り基準の表示駅番号へ変換する。
+ *
+ * 例えば4駅なら
+ *
+ * 元:
+ *   上り 3,2,1,0
+ *
+ * 表示:
+ *   0,1,2,3
+ */
+function displayStationIndex(
+    originalIndex,
+    direction
+){
+
+    const n=
+        database.stations.length;
+
+    if(direction==="Nobori"){
+
+        return n-1-originalIndex;
+
+    }
+
+    return originalIndex;
+
+}
+
+
+/*
+ * 表示上の駅一覧。
+ *
+ * 「上りだけ」のときだけ逆順にする。
+ *
+ * 「両方」は下り基準。
+ */
+function getVisibleStationIndices(){
+
+    const n=
+        database.stations.length;
+
+    const result=[];
+
+    if(currentDirection==="Nobori"){
+
+        for(let i=n-1;i>=0;i--){
+            result.push(i);
+        }
+
+    }else{
+
+        for(let i=0;i<n;i++){
+            result.push(i);
+        }
+
+    }
+
+    return result;
+
+}
+
+
+/*
+ * 駅一覧の表示番号から、
+ * 実データの駅番号を得る。
+ */
+function visibleToOriginalStationIndex(
+    visibleIndex
+){
+
+    const visible=
+        getVisibleStationIndices();
+
+    return visible[visibleIndex];
+
+}
+
+
+/* =========================================================
+   TRAIN FILTER
+========================================================= */
+
+function getVisibleTrains(dia){
+
+    if(!dia)return[];
+
+    if(currentDirection==="Both"){
+
+        return dia.trains.filter(
+            train=>
+                train.direction==="Kudari" ||
+                train.direction==="Nobori"
+        );
+
+    }
+
+    return dia.trains.filter(
+        train=>
+            train.direction===currentDirection
+    );
+
+}
+
+
+/* =========================================================
+   UI
+========================================================= */
+
+function setupUI(){
+
+    const route=
+        database.route;
+
+    const stations=
+        database.stations;
+
+    const types=
+        database.types;
+
+    const dias=
+        database.dias;
+
+
+    diaSelect.innerHTML="";
+
+
+    dias.forEach(function(dia,index){
+
+        const option=
+            document.createElement(
+                "option"
+            );
+
+        option.value=index;
+
+        option.textContent=
+            dia.name||
+            "ダイヤ "+(index+1);
+
+        diaSelect.appendChild(
+            option
+        );
+
+    });
+
+
+    diaSelect.disabled=
+        dias.length===0;
+
+
+    sidebarTitle.textContent=
+        (route.name||"路線")+
+        "　"+
+        stations.length+
+        "駅";
+
+
+    renderStationList();
+
+
+    legend.innerHTML="";
+
+
+    types
+        .filter(
+            type=>!type.hidden
+        )
+        .forEach(function(type){
+
+            const item=
+                document.createElement(
+                    "span"
+                );
+
+            item.className=
+                "legendItem";
+
+            item.innerHTML=
+                '<span class="legendLine" style="background:'+
+                type.diagramColor+
+                '"></span>'+
+                escapeHtml(type.short);
+
+            legend.appendChild(item);
+
+        });
+
+
+    const trainCount=
+        dias.reduce(
+            (sum,dia)=>
+                sum+dia.trains.length,
+            0
+        );
+
+
+    status.textContent=
+        stations.length+
+        "駅 / "+
+        trainCount+
+        "列車 / "+
+        types.length+
+        "種別";
+
+}
+
+
+function renderStationList(){
+
+    stationList.innerHTML="";
+
+    const indices=
+        getVisibleStationIndices();
+
+    indices.forEach(
+        function(originalIndex,visibleIndex){
+
+            const station=
+                database.stations[
+                    originalIndex
+                ];
+
+            const div=
+                document.createElement(
+                    "div"
+                );
+
+            div.className="station";
+
+            div.innerHTML=
+                '<span class="stationNumber">'+
+                (visibleIndex+1)+
+                '</span>'+
+                '<span class="stationName">'+
+                escapeHtml(
+                    station.name
+                )+
+                '</span>';
+
+            div.addEventListener(
+                "click",
+                function(){
+
+                    scrollToStation(
+                        originalIndex
+                    );
+
+                }
+            );
+
+            stationList.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+
+    if(!database)return;
+
+    trainInfo.style.display="none";
+
+    renderStationList();
+
+
+    if(currentView==="table"){
+
+        diagramContainer.style.display=
+            "none";
+
+        tableContainer.style.display=
+            "block";
+
+        renderTrainTable();
+
+    }else{
+
+        diagramContainer.style.display=
+            "block";
+
+        tableContainer.style.display=
+            "none";
+
+        renderDiagram();
+
+    }
+
+}
+
+
+/* =========================================================
+   TIME ACCESS
+========================================================= */
+
+function hasActualTime(time){
+
+    return !!(
+        time &&
+        time.exists===true &&
+        (
+            time.arrival!==null ||
+            time.departure!==null
+        )
+    );
+
+}
+
+
+function usableTime(time){
+
+    if(!hasActualTime(time)){
+        return null;
+    }
+
+    if(
+        time.departure!==null &&
+        time.departure!==undefined
+    ){
+
+        return time.departure;
+
+    }
+
+    if(
+        time.arrival!==null &&
+        time.arrival!==undefined
+    ){
+
+        return time.arrival;
+
+    }
+
+    return null;
+
+}
+
+
+/* =========================================================
+   SECTION RUNTIME
+========================================================= */
+
+/*
+ * 重要:
+ *
+ * 駅間距離を決める時刻は
+ *
+ * 「下り列車だけ」
+ *
+ * から取得する。
+ *
+ * 上り列車は絶対に使用しない。
+ */
+
+
+function elapsedMinutes(start,end){
+
+    if(
+        !Number.isFinite(start) ||
+        !Number.isFinite(end)
+    ){
+        return null;
+    }
+
+    let diff=
+        end-start;
+
+    if(diff<0){
+        diff+=24*60;
+    }
+
+    return(
+        diff>0 &&
+        diff<=180
+    )
+        ? diff
+        : null;
+
+}
+
+
+/*
+ * 下り列車専用。
+ *
+ * 前駅の発
+ * ↓
+ * 次駅の着
+ *
+ * で駅間時間を取る。
+ */
+function sectionRuntimeCandidates(
+    train
+){
+
+    const result=
+        new Array(
+            Math.max(
+                0,
+                database.stations.length-1
+            )
+        ).fill(null);
+
+
+    if(
+        !train ||
+        train.direction!=="Kudari" ||
+        !train.times
+    ){
+
+        return result;
+
+    }
+
+
+    const limit=
+        Math.min(
+            train.times.length,
+            database.stations.length
+        )-1;
+
+
+    for(
+        let i=0;
+        i<limit;
+        i++
+    ){
+
+        const from=
+            train.times[i];
+
+        const to=
+            train.times[i+1];
+
+
+        /*
+         * 両方に実時刻が必要。
+         *
+         * 通過駅を含む列車は
+         * 駅間実測値には使わない。
+         */
+        if(
+            !hasActualTime(from) ||
+            !hasActualTime(to)
+        ){
+
+            continue;
+
+        }
+
+
+        const start=
+            from.departure!==null &&
+            from.departure!==undefined
+                ? from.departure
+                : from.arrival;
+
+
+        const end=
+            to.arrival!==null &&
+            to.arrival!==undefined
+                ? to.arrival
+                : to.departure;
+
+
+        const diff=
+            elapsedMinutes(
+                start,
+                end
+            );
+
+
+        if(diff===null)continue;
+
+
+        if(
+            sameBranchStation(
+                i,
+                i+1
+            )
+        ){
+
+            continue;
+
+        }
+
+
+        result[i]=Math.max(
+            result[i]??0,
+            diff
+        );
+
+    }
+
+
+    return result;
+
+}
+
+
+/*
+ * 駅間時間の全下り列車最大値。
+ */
+function calculateSectionHeights(
+    dia
+){
+
+    const n=
+        database.stations.length;
+
+    const result=
+        new Array(
+            Math.max(0,n-1)
+        ).fill(null);
+
+
+    /*
+     * ★ここで下り列車だけに限定
+     */
+    const downTrains=
+        dia.trains.filter(
+            train=>
+                train.direction==="Kudari"
+        );
+
+
+    for(
+        let i=0;
+        i<n-1;
+        i++
+    ){
+
+        if(
+            sameBranchStation(
+                i,
+                i+1
+            )
+        ){
+
+            continue;
+
+        }
+
+
+        let max=0;
+
+
+        for(
+            const train of downTrains
+        ){
+
+            const candidates=
+                sectionRuntimeCandidates(
+                    train
+                );
+
+            const diff=
+                candidates[i];
+
+
+            if(
+                diff!==null &&
+                diff>=0.1 &&
+                diff<=180
+            ){
+
+                max=
+                    Math.max(
+                        max,
+                        diff
+                    );
+
+            }
+
+        }
+
+
+        result[i]=
+            max>0
+                ? max
+                : null;
+
+    }
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   STATION Y
+========================================================= */
+
+function calculateStationY(
+    dia,
+    zoom
+){
+
+    const n=
+        database.stations.length;
+
+
+    /*
+     * ★下りだけから算出
+     */
+    const section=
+        calculateSectionHeights(
+            dia
+        );
+
+
+    const y=[
+        45*zoom
+    ];
+
+
+    const pixelsPerMinute=
+        verticalRatio*zoom;
+
+
+    for(
+        let i=0;
+        i<n-1;
+        i++
+    ){
+
+        const minutes=
+            section[i];
+
+
+        /*
+         * 実測値なし区間は
+         * 最低5分分だけ確保。
+         */
+        const height=
+            minutes!==null &&
+            minutes!==undefined
+                ? minutes*pixelsPerMinute
+                : 5*pixelsPerMinute;
+
+
+        y.push(
+            y[i]+height
+        );
+
+    }
+
+
+    return{
+        y,
+        section
+    };
+
+}
+
+
+/* =========================================================
+   DIAGRAM
+========================================================= */
+
+function renderDiagram(){
+
+    const dia=
+        database.dias[
+            Number(
+                diaSelect.value
+            )
+        ];
+
+
+    if(!dia)return;
+
+
+    const trains=
+        getVisibleTrains(dia);
+
+
+    const zoom=
+        Number(
+            zoomInput.value
+        )/100;
+
+
+    const geometry=
+        calculateStationY(
+            dia,
+            zoom
+        );
+
+
+    const stationY=
+        geometry.y;
+
+    const sectionTimes=
+        geometry.section;
+
+
+    const left=
+        145*zoom;
+
+
+    const minuteWidth=
+        horizontalRatio*zoom;
+
+
+    const width=
+        left+
+        minuteWidth*24*60+
+        60;
+
+
+    const height=
+        stationY[
+            stationY.length-1
+        ]+
+        55*zoom;
+
+
+    diagram.setAttribute(
+        "width",
+        width
+    );
+
+    diagram.setAttribute(
+        "height",
+        height
+    );
+
+
+    diagram.innerHTML="";
+
+    empty.style.display="none";
+
+
+    const NS=
+        "http://www.w3.org/2000/svg";
+
+
+    function svgElement(
+        tag,
+        attrs={}
+    ){
+
+        const e=
+            document.createElementNS(
+                NS,
+                tag
+            );
+
+
+        Object.keys(attrs)
+            .forEach(function(key){
+
+                e.setAttribute(
+                    key,
+                    attrs[key]
+                );
+
+            });
+
+
+        diagram.appendChild(e);
+
+        return e;
+
+    }
+
+
+    /*
+     * 背景
+     */
+
+    svgElement(
+        "rect",
+        {
+            x:0,
+            y:0,
+            width,
+            height,
+            fill:"#ffffff"
+        }
+    );
+
+
+    /*
+     * 時刻線
+     */
+
+    for(
+        let hour=2;
+        hour<=26;
+        hour++
+    ){
+
+        const x=
+            left+
+            (hour-2)*
+            60*
+            minuteWidth;
+
+
+        svgElement(
+            "line",
+            {
+                x1:x,
+                y1:20*zoom,
+                x2:x,
+                y2:height,
+                stroke:
+                    hour%6===2
+                        ? "#b8c0c7"
+                        : "#e5e8eb",
+                "stroke-width":
+                    hour%6===2
+                        ? 1.5
+                        : 1
+            }
+        );
+
+
+        if(hour<26){
+
+            const labelHour=
+                hour>=24
+                    ? hour-24
+                    : hour;
+
+
+            const text=
+                svgElement(
+                    "text",
+                    {
+                        x:
+                            x+
+                            3*zoom,
+
+                        y:
+                            17*zoom,
+
+                        "font-size":
+                            12*zoom,
+
+                        fill:"#59656f"
+                    }
+                );
+
+
+            text.textContent=
+                String(
+                    labelHour
+                ).padStart(2,"0")+
+                ":00";
+
+        }
+
+    }
+
+
+    /*
+     * 駅線
+     *
+     * 常に下り基準。
+     */
+    database.stations.forEach(
+        function(station,index){
+
+            const y=
+                stationY[index];
+
+
+            svgElement(
+                "line",
+                {
+                    x1:left,
+                    y1:y,
+                    x2:width,
+                    y2:y,
+                    stroke:
+                        station.hidden
+                            ? "#f2f3f4"
+                            : "#e5e8eb",
+                    "stroke-width":
+                        station.hidden
+                            ? 0.5
+                            : 1
+                }
+            );
+
+
+            const text=
+                svgElement(
+                    "text",
+                    {
+                        x:
+                            left-
+                            8*zoom,
+
+                        y:
+                            y+
+                            4*zoom,
+
+                        "text-anchor":
+                            "end",
+
+                        "font-size":
+                            12*zoom,
+
+                        fill:
+                            station.hidden
+                                ? "#9ba3aa"
+                                : "#252c32"
+                    }
+                );
+
+
+            text.textContent=
+                station.name;
+
+        }
+    );
+
+
+    /*
+     * 駅間所要時間
+     *
+     * ★下りだけから取得
+     */
+
+    for(
+        let i=0;
+        i<sectionTimes.length;
+        i++
+    ){
+
+        const minutes=
+            sectionTimes[i];
+
+        if(minutes===null)continue;
+
+
+        const y1=
+            stationY[i];
+
+        const y2=
+            stationY[i+1];
+
+
+        const text=
+            svgElement(
+                "text",
+                {
+                    x:left+3,
+                    y:(y1+y2)/2,
+                    "font-size":9*zoom,
+                    fill:"#a0a8ae"
+                }
+            );
+
+
+        text.textContent=
+            Math.abs(
+                minutes-
+                Math.round(minutes)
+            )<0.05
+                ? Math.round(minutes)+"分"
+                : minutes.toFixed(1)+"分";
+
+    }
+
+
+    /*
+     * 列車
+     */
+
+    trains.forEach(
+        function(train){
+
+            drawTrain(
+                train,
+                left,
+                stationY,
+                minuteWidth,
+                zoom
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   TRAIN GROUPS
+========================================================= */
+
+/*
+ * 列車データを駅の連続区間に分割。
+ *
+ * 上りでもここでは元データ駅番号を使う。
+ * 実際の描画時に
+ *
+ *   displayStationIndex()
+ *
+ * で下り基準へ変換する。
+ */
+function buildTrainGroups(train){
+
+    const groups=[];
+
+    let current=[];
+
+
+    const limit=
+        Math.min(
+            train.times.length,
+            database.stations.length
+        );
+
+
+    for(
+        let i=0;
+        i<limit;
+        i++
+    ){
+
+        const time=
+            train.times[i];
+
+
+        if(
+            !time ||
+            time.exists!==true
+        ){
+
+            if(current.length){
+
+                groups.push(
+                    current
+                );
+
+                current=[];
+
+            }
+
+            continue;
+
+        }
+
+
+        current.push({
+
+            stationIndex:i,
+
+            time
+
+        });
+
+    }
+
+
+    if(current.length){
+
+        groups.push(
+            current
+        );
+
+    }
+
+
+    return groups;
+
+}
+
+
+/* =========================================================
+   TRAIN INTERPOLATION
+========================================================= */
+
+function interpolateTrainGroup(
+    group,
+    stationY,
+    trainDirection
+){
+
+    const result=
+        new Array(
+            group.length
+        ).fill(null);
+
+
+    const actual=[];
+
+
+    group.forEach(
+        function(item,index){
+
+            const t=
+                item.time;
+
+
+            if(
+                !t ||
+                !hasActualTime(t)
+            ){
+
+                return;
+
+            }
+
+
+            const arrival=
+                t.arrival!==null &&
+                t.arrival!==undefined
+                    ? t.arrival
+                    : t.departure;
+
+
+            const departure=
+                t.departure!==null &&
+                t.departure!==undefined
+                    ? t.departure
+                    : t.arrival;
+
+
+            actual.push({
+
+                groupIndex:index,
+
+                stationIndex:
+                    item.stationIndex,
+
+                arrival,
+
+                departure
+
+            });
+
+        }
+    );
+
+
+    if(!actual.length){
+        return result;
+    }
+
+
+    /*
+     * 実時刻。
+     */
+
+    actual.forEach(
+        function(point){
+
+            result[
+                point.groupIndex
+            ]={
+
+                arrival:
+                    point.arrival,
+
+                departure:
+                    point.departure,
+
+                actual:true
+
+            };
+
+        }
+    );
+
+
+    /*
+     * 通過駅の補間。
+     *
+     * 上りは駅番号が逆方向なので、
+     * 表示駅番号へ変換してからY比率を取る。
+     *
+     * 이것が上り反転問題の核心。
+     */
+
+    for(
+        let a=0;
+        a<actual.length-1;
+        a++
+    ){
+
+        const leftPoint=
+            actual[a];
+
+        const rightPoint=
+            actual[a+1];
+
+
+        const index1=
+            leftPoint.groupIndex;
+
+        const index2=
+            rightPoint.groupIndex;
+
+
+        if(
+            index2-index1<=1
+        ){
+
+            continue;
+
+        }
+
+
+        const start=
+            leftPoint.departure;
+
+        const end=
+            rightPoint.arrival;
+
+
+        if(
+            !Number.isFinite(start) ||
+            !Number.isFinite(end)
+        ){
+
+            continue;
+
+        }
+
+
+        const displayIndex1=
+            displayStationIndex(
+                leftPoint.stationIndex,
+                trainDirection
+            );
+
+
+        const displayIndex2=
+            displayStationIndex(
+                rightPoint.stationIndex,
+                trainDirection
+            );
+
+
+        const y1=
+            stationY[
+                displayIndex1
+            ];
+
+        const y2=
+            stationY[
+                displayIndex2
+            ];
+
+
+        const yDiff=
+            y2-y1;
+
+
+        if(yDiff===0){
+            continue;
+        }
+
+
+        let diff=
+            end-start;
+
+
+        if(diff<0){
+            diff+=24*60;
+        }
+
+
+        for(
+            let i=index1+1;
+            i<index2;
+            i++
+        ){
+
+            const originalIndex=
+                group[i].stationIndex;
+
+
+            const displayIndex=
+                displayStationIndex(
+                    originalIndex,
+                    trainDirection
+                );
+
+
+            const ratio=
+                (
+                    stationY[displayIndex]-y1
+                )/yDiff;
+
+
+            const minute=
+                start+
+                diff*ratio;
+
+
+            result[i]={
+
+                arrival:minute,
+
+                departure:minute,
+
+                actual:false
+
+            };
+
+        }
+
+    }
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   TRAIN SEGMENTS
+========================================================= */
+
+function buildTrainSegments(
+    train,
+    stationY,
+    left,
+    minuteWidth
+){
+
+    const groups=
+        buildTrainGroups(
+            train
+        );
+
+
+    const segments=[];
+
+
+    groups.forEach(
+        function(group){
+
+            if(group.length<2)return;
+
+
+            const times=
+                interpolateTrainGroup(
+                    group,
+                    stationY,
+                    train.direction
+                );
+
+
+            /*
+             * ★列車ごとの表示座標。
+             *
+             * 下り:
+             *
+             * 0 → 1 → 2 → 3
+             *
+             * 上り:
+             *
+             * 3 → 2 → 1 → 0
+             *
+             * を
+             *
+             * 0 → 1 → 2 → 3
+             *
+             * に変換する。
+             */
+
+            let points=[];
+
+
+            function addPoint(
+                item,
+                minute,
+                kind,
+                calculated
+            ){
+
+                if(
+                    !Number.isFinite(minute)
+                ){
+
+                    return;
+
+                }
+
+
+                const displayIndex=
+                    displayStationIndex(
+                        item.stationIndex,
+                        train.direction
+                    );
+
+
+                points.push({
+
+                    x:
+                        left+
+                        (minute-120)*
+                        minuteWidth,
+
+                    y:
+                        stationY[
+                            displayIndex
+                        ],
+
+                    stationIndex:
+                        item.stationIndex,
+
+                    displayStationIndex:
+                        displayIndex,
+
+                    time:item.time,
+
+                    minute,
+
+                    kind,
+
+                    passed:
+                        item.time.passed===true,
+
+                    calculated:
+                        calculated===true
+
+                });
+
+            }
+
+
+            group.forEach(
+                function(item,index){
+
+                    const t=
+                        times[index];
+
+
+                    if(!t){
+
+                        if(points.length>=2){
+
+                            segments.push(
+                                points
+                            );
+
+                        }
+
+                        points=[];
+
+                        return;
+
+                    }
+
+
+                    /*
+                     * 着
+                     */
+
+                    addPoint(
+                        item,
+                        t.arrival,
+                        "arrival",
+                        !t.actual
+                    );
+
+
+                    /*
+                     * 発
+                     *
+                     * 長時間停車なら
+                     * 水平線ができる。
+                     */
+
+                    if(
+                        t.departure!==t.arrival
+                    ){
+
+                        addPoint(
+                            item,
+                            t.departure,
+                            "departure",
+                            !t.actual
+                        );
+
+                    }
+
+                }
+            );
+
+
+            if(points.length>=2){
+
+                segments.push(
+                    points
+                );
+
+            }
+
+        }
+    );
+
+
+    return segments;
+
+}
+
+
+/* =========================================================
+   TRAIN DRAW
+========================================================= */
+
+function drawTrain(
+    train,
+    left,
+    stationY,
+    minuteWidth,
+    zoom
+){
+
+    const type=
+        database.types[
+            train.typeIndex
+        ]||
+        {
+
+            name:"不明",
+
+            short:"?",
+
+            diagramColor:"#555"
+
+        };
+
+
+    const segments=
+        buildTrainSegments(
+            train,
+            stationY,
+            left,
+            minuteWidth
+        );
+
+
+    const NS=
+        "http://www.w3.org/2000/svg";
+
+
+    segments.forEach(
+        function(points){
+
+            if(points.length<2)return;
+
+
+            const polyline=
+                document.createElementNS(
+                    NS,
+                    "polyline"
+                );
+
+
+            polyline.setAttribute(
+                "points",
+                points
+                    .map(
+                        p=>
+                            p.x+
+                            ","+
+                            p.y
+                    )
+                    .join(" ")
+            );
+
+
+            polyline.setAttribute(
+                "fill",
+                "none"
+            );
+
+
+            polyline.setAttribute(
+                "stroke",
+                type.diagramColor
+            );
+
+
+            polyline.setAttribute(
+                "stroke-width",
+                type.name==="普通"
+                    ? 1.2*zoom
+                    : 2*zoom
+            );
+
+
+            polyline.setAttribute(
+                "stroke-linecap",
+                "round"
+            );
+
+
+            polyline.setAttribute(
+                "stroke-linejoin",
+                "round"
+            );
+
+
+            polyline.style.cursor=
+                "pointer";
+
+
+            /*
+             * 上り・下りを
+             * 同じ見た目で描く。
+             *
+             * 両方モードでは
+             * 種別色はそのまま。
+             */
+
+            polyline.addEventListener(
+                "click",
+                function(event){
+
+                    event.stopPropagation();
+
+                    showTrainInfo(
+                        train,
+                        type
+                    );
+
+                }
+            );
+
+
+            diagram.appendChild(
+                polyline
+            );
+
+
+            /*
+             * 実時刻駅だけ○。
+             *
+             * 補間駅には○を出さない。
+             */
+
+            points.forEach(
+                function(point){
+
+                    if(
+                        point.passed ||
+                        point.calculated
+                    ){
+
+                        return;
+
+                    }
+
+
+                    const circle=
+                        document.createElementNS(
+                            NS,
+                            "circle"
+                        );
+
+
+                    circle.setAttribute(
+                        "cx",
+                        point.x
+                    );
+
+
+                    circle.setAttribute(
+                        "cy",
+                        point.y
+                    );
+
+
+                    circle.setAttribute(
+                        "r",
+                        2.6*zoom
+                    );
+
+
+                    circle.setAttribute(
+                        "fill",
+                        type.diagramColor
+                    );
+
+
+                    circle.style.cursor=
+                        "pointer";
+
+
+                    circle.addEventListener(
+                        "click",
+                        function(event){
+
+                            event.stopPropagation();
+
+                            showTrainInfo(
+                                train,
+                                type
+                            );
+
+                        }
+                    );
+
+
+                    diagram.appendChild(
+                        circle
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   TRAIN INFO
+========================================================= */
+
+function showTrainInfo(
+    train,
+    type
+){
+
+    trainInfo.style.display=
+        "block";
+
+
+    trainInfoTitle.textContent=
+        type.name+
+        "　"+
+        (
+            train.direction==="Kudari"
+                ? "下り"
+                : "上り"
+        );
+
+
+    const valid=
+        train.times
+            .map(
+                function(time,index){
+
+                    if(
+                        !hasActualTime(time)
+                    ){
+
+                        return null;
+
+                    }
+
+
+                    const minute=
+                        usableTime(time);
+
+
+                    if(minute===null){
+
+                        return null;
+
+                    }
+
+
+                    return{
+
+                        station:
+                            database.stations[
+                                index
+                            ],
+
+                        minute,
+
+                        time
+
+                    };
+
+                }
+            )
+            .filter(Boolean);
+
+
+    if(!valid.length){
+
+        trainInfoBody.textContent=
+            "時刻情報なし";
+
+        return;
+
+    }
+
+
+    const first=
+        valid[0];
+
+    const last=
+        valid[
+            valid.length-1
+        ];
+
+
+    let html="";
+
+
+    html+=
+        '<div class="infoLine">'+
+        "<b>始発:</b> "+
+        escapeHtml(
+            first.station.name
+        )+
+        " "+
+        formatTime(
+            first.minute
+        )+
+        "</div>";
+
+
+    html+=
+        '<div class="infoLine">'+
+        "<b>終着:</b> "+
+        escapeHtml(
+            last.station.name
+        )+
+        " "+
+        formatTime(
+            last.minute
+        )+
+        "</div>";
+
+
+    html+=
+        '<div class="infoLine">'+
+        "<b>時刻数:</b> "+
+        valid.length+
+        "</div>";
+
+
+    const operationKeys=
+        Object.keys(
+            train.operations
+        );
+
+
+    if(operationKeys.length){
+
+        html+=
+            "<hr>"+
+            '<div class="muted">運用情報</div>';
+
+
+        operationKeys.forEach(
+            function(key){
+
+                html+=
+                    '<div class="infoLine">'+
+                    escapeHtml(key)+
+                    ": "+
+                    escapeHtml(
+                        train.operations[key]
+                    )+
+                    "</div>";
+
+            }
+        );
+
+    }
+
+
+    trainInfoBody.innerHTML=
+        html;
+
+}
+
+
+/* =========================================================
+   TRAIN TABLE
+========================================================= */
+
+function renderTrainTable(){
+
+    const dia=
+        database.dias[
+            Number(
+                diaSelect.value
+            )
+        ];
+
+
+    if(!dia)return;
+
+
+    const trains=
+        getVisibleTrains(
+            dia
+        );
+
+
+    trainTable.innerHTML="";
+
+
+    trains.forEach(
+        function(train,index){
+
+            const type=
+                database.types[
+                    train.typeIndex
+                ]||
+                {
+
+                    name:"不明",
+
+                    diagramColor:"#555"
+
+                };
+
+
+            const valid=
+                train.times
+                    .map(
+                        function(
+                            time,
+                            stationIndex
+                        ){
+
+                            if(
+                                !hasActualTime(
+                                    time
+                                )
+                            ){
+
+                                return null;
+
+                            }
+
+
+                            const minute=
+                                usableTime(
+                                    time
+                                );
+
+
+                            if(
+                                minute===null
+                            ){
+
+                                return null;
+
+                            }
+
+
+                            return{
+
+                                stationIndex,
+
+                                minute
+
+                            };
+
+                        }
+                    )
+                    .filter(Boolean);
+
+
+            const first=
+                valid[0];
+
+            const last=
+                valid[
+                    valid.length-1
+                ];
+
+
+            const tr=
+                document.createElement(
+                    "tr"
+                );
+
+
+            tr.className=
+                "trainRow";
+
+
+            tr.innerHTML=
+
+                "<td>"+
+                (index+1)+
+                "</td>"+
+
+                '<td style="color:'+
+                type.diagramColor+
+                ';font-weight:600">'+
+                escapeHtml(
+                    type.name
+                )+
+                "</td>"+
+
+                "<td>"+
+                (
+                    train.direction==="Kudari"
+                        ? "下り"
+                        : "上り"
+                )+
+                "</td>"+
+
+                "<td>"+
+                escapeHtml(
+                    operationText(
+                        train
+                    )
+                )+
+                "</td>"+
+
+                "<td>"+
+                (
+                    first
+                        ? escapeHtml(
+                            database.stations[
+                                first.stationIndex
+                            ].name
+                        )+
+                        " "+
+                        formatTime(
+                            first.minute
+                        )
+                        : ""
+                )+
+                "</td>"+
+
+                "<td>"+
+                (
+                    last
+                        ? escapeHtml(
+                            database.stations[
+                                last.stationIndex
+                            ].name
+                        )+
+                        " "+
+                        formatTime(
+                            last.minute
+                        )
+                        : ""
+                )+
+                "</td>"+
+
+                "<td>"+
+                valid.length+
+                "</td>";
+
+
+            tr.addEventListener(
+                "click",
+                function(){
+
+                    showTrainInfo(
+                        train,
+                        type
+                    );
+
+                }
+            );
+
+
+            trainTable.appendChild(
+                tr
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   OPERATION
+========================================================= */
+
+function operationText(train){
+
+    const keys=
+        Object.keys(
+            train.operations
+        );
+
+
+    if(!keys.length){
+        return"";
+    }
+
+
+    return keys
+        .map(
+            key=>
+                train.operations[key]
+        )
+        .join(" / ");
+
+}
+
+
+/* =========================================================
+   FORMAT TIME
+========================================================= */
+
+function formatTime(minute){
+
+    if(
+        minute===null ||
+        minute===undefined ||
+        !Number.isFinite(minute)
+    ){
+
+        return"";
+
+    }
+
+
+    let hour=
+        Math.floor(
+            minute/60
+        );
+
+
+    const min=
+        minute%60;
+
+
+    if(hour>=24){
+
+        hour-=24;
+
+    }
+
+
+    return String(
+        hour
+    ).padStart(2,"0")+
+    ":"+
+    String(
+        min
+    ).padStart(2,"0");
+
+}
+
+
+/* =========================================================
+   STATION SCROLL
+========================================================= */
+
+function scrollToStation(
+    originalIndex
+){
+
+    if(!database)return;
+
+
+    const dia=
+        database.dias[
+            Number(
+                diaSelect.value
+            )
+        ];
+
+
+    if(!dia)return;
+
+
+    const zoom=
+        Number(
+            zoomInput.value
+        )/100;
+
+
+    const geometry=
+        calculateStationY(
+            dia,
+            zoom
+        );
+
+
+    /*
+     * 上り表示でも、
+     * ダイヤ自体は下り基準の座標。
+     *
+     * 元駅番号 → 表示駅番号
+     */
+
+    const displayIndex=
+        displayStationIndex(
+            originalIndex,
+            currentDirection==="Nobori"
+                ? "Nobori"
+                : "Kudari"
+        );
+
+
+    const y=
+        geometry.y[
+            displayIndex
+        ]||0;
+
+
+    diagramContainer.scrollTo({
+
+        top:
+            Math.max(
+                0,
+                y-100
+            ),
+
+        behavior:"smooth"
+
+    });
+
+}
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(
+        value??""
+    ).replace(
+        /[&<>"']/g,
+        function(char){
+
+            return{
+
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#039;"
+
+            }[char];
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SEGMENT UI
+========================================================= */
+
+function syncSegmentedUI(){
+
+    document
+    .querySelectorAll(
+        ".segment[data-direction]"
+    )
+    .forEach(
+        function(button){
+
+            button.classList.toggle(
+                "active",
+                button.dataset.direction===
+                currentDirection
+            );
+
+        }
+    );
+
+
+    document
+    .querySelectorAll(
+        ".segment[data-view]"
+    )
+    .forEach(
+        function(button){
+
+            button.classList.toggle(
+                "active",
+                button.dataset.view===
+                currentView
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function setZoom(value){
+
+    value=
+        Math.round(
+            Number(value)/10
+        )*10;
+
+
+    value=
+        Math.max(
+            50,
+            Math.min(
+                300,
+                value
+            )
+        );
+
+
+    zoomInput.value=
+        value;
+
+
+    if(database){
+        render();
+    }
+
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+diaSelect.addEventListener(
+    "change",
+    render
+);
+
+
+document
+.querySelectorAll(
+    ".segment[data-direction]"
+)
+.forEach(
+    function(button){
+
+        button.addEventListener(
+            "click",
+            function(){
+
+                currentDirection=
+                    this.dataset.direction;
+
+                syncSegmentedUI();
+
+                render();
+
+            }
+        );
+
+    }
+);
+
+
+document
+.querySelectorAll(
+    ".segment[data-view]"
+)
+.forEach(
+    function(button){
+
+        button.addEventListener(
+            "click",
+            function(){
+
+                currentView=
+                    this.dataset.view;
+
+                syncSegmentedUI();
+
+                render();
+
+            }
+        );
+
+    }
+);
+
+
+zoomInput.addEventListener(
+    "change",
+    function(){
+
+        setZoom(
+            this.value
+        );
+
+    }
+);
+
+
+document
+.getElementById("zoomMinus")
+.addEventListener(
+    "click",
+    function(){
+
+        setZoom(
+            Number(
+                zoomInput.value
+            )-10
+        );
+
+    }
+);
+
+
+document
+.getElementById("zoomPlus")
+.addEventListener(
+    "click",
+    function(){
+
+        setZoom(
+            Number(
+                zoomInput.value
+            )+10
+        );
+
+    }
+);
+
+
+document
+.getElementById("resetViewButton")
+.addEventListener(
+    "click",
+    function(){
+
+        zoomInput.value=100;
+
+        horizontalRatio=12;
+
+        verticalRatio=12;
+
+        currentDirection="Kudari";
+
+        currentView="diagram";
+
+        updateRatioUI();
+
+        syncSegmentedUI();
+
+        diagramContainer.scrollTo({
+
+            top:0,
+
+            left:0,
+
+            behavior:"smooth"
+
+        });
+
+        if(database){
+            render();
+        }
+
+    }
+);
+
+
+diagramContainer.addEventListener(
+    "click",
+    function(event){
+
+        if(
+            event.target===diagram
+        ){
+
+            trainInfo.style.display=
+                "none";
+
+        }
+
+    }
+);
+
+
+syncSegmentedUI();
+
+</script>
+
+</body>
+</html>
