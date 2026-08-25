@@ -421,7 +421,7 @@ tr.trainRow:hover{
     }
 
     .ratioControl{
-        display:none;
+        display:flex;
     }
 }
 
@@ -569,12 +569,6 @@ tr.trainRow:hover{
             ダイヤ
         </button>
 
-        <button
-            type="button"
-            class="segment"
-            data-view="table">
-            列車一覧
-        </button>
 
     </div>
 
@@ -623,7 +617,7 @@ tr.trainRow:hover{
     <div class="controlGroup compact ratioControl">
 
         <span class="controlLabel">
-            横
+            横縮尺
         </span>
 
         <button
@@ -654,7 +648,7 @@ tr.trainRow:hover{
     <div class="controlGroup compact ratioControl">
 
         <span class="controlLabel">
-            縦
+            縦縮尺
         </span>
 
         <button
@@ -728,31 +722,9 @@ tr.trainRow:hover{
         </div>
 
 
-        <div
-            id="tableContainer"
-            style="display:none">
+        <div id="tableContainer" style="display:none"></div>
 
-            <table>
 
-                <thead>
-
-                    <tr>
-                        <th>No.</th>
-                        <th>種別</th>
-                        <th>方向</th>
-                        <th>列車情報</th>
-                        <th>始発</th>
-                        <th>終着</th>
-                        <th>時刻数</th>
-                    </tr>
-
-                </thead>
-
-                <tbody id="trainTable"></tbody>
-
-            </table>
-
-        </div>
 
     </section>
 
@@ -2103,27 +2075,13 @@ function render(){
     renderStationList();
 
 
-    if(currentView==="table"){
+    diagramContainer.style.display=
+        "block";
 
-        diagramContainer.style.display=
-            "none";
+    tableContainer.style.display=
+        "none";
 
-        tableContainer.style.display=
-            "block";
-
-        renderTrainTable();
-
-    }else{
-
-        diagramContainer.style.display=
-            "block";
-
-        tableContainer.style.display=
-            "none";
-
-        renderDiagram();
-
-    }
+    renderDiagram();
 
 }
 
@@ -2623,20 +2581,23 @@ function renderDiagram(){
 
     /*
      * 時刻線
+     *
+     * 横縮尺に応じて補助線の間隔を自動調整。
+     * 小さい縮尺では1時間ごと、拡大すると30分・15分・10分ごと。
      */
+    const gridMinutes = 10;
 
     for(
-        let hour=2;
-        hour<=26;
-        hour++
+        let minute=0;
+        minute<=24*60;
+        minute+=gridMinutes
     ){
-
         const x=
             left+
-            (hour-2)*
-            60*
-            minuteWidth;
+            minute*minuteWidth;
 
+        const isHour=minute%60===0;
+        const isHalfHour=minute%30===0;
 
         svgElement(
             "line",
@@ -2646,52 +2607,39 @@ function renderDiagram(){
                 x2:x,
                 y2:height,
                 stroke:
-                    hour%6===2
+                    isHour
                         ? "#b8c0c7"
                         : "#e5e8eb",
                 "stroke-width":
-                    hour%6===2
+                    isHour
                         ? 1.5
-                        : 1
+                        : isHalfHour
+                            ? 1
+                            : 0.7
             }
         );
 
-
-        if(hour<26){
-
+        if(isHour && minute<24*60){
+            const totalHour=2+minute/60;
             const labelHour=
-                hour>=24
-                    ? hour-24
-                    : hour;
-
+                totalHour>=24
+                    ? totalHour-24
+                    : totalHour;
 
             const text=
                 svgElement(
                     "text",
                     {
-                        x:
-                            x+
-                            3*zoom,
-
-                        y:
-                            17*zoom,
-
-                        "font-size":
-                            12*zoom,
-
+                        x:x+3*zoom,
+                        y:17*zoom,
+                        "font-size":12*zoom,
                         fill:"#59656f"
                     }
                 );
 
-
             text.textContent=
-                String(
-                    labelHour
-                ).padStart(2,"0")+
-                ":00";
-
+                String(labelHour).padStart(2,"0")+":00";
         }
-
     }
 
 
@@ -3514,7 +3462,7 @@ function drawTrain(
 
                     circle.setAttribute(
                         "r",
-                        2.6*zoom
+                        1.8*zoom
                     );
 
 
