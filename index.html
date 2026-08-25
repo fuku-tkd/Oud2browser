@@ -253,7 +253,7 @@ body{
     min-height:0;
     flex:1;
     display:grid;
-    grid-template-columns:210px 1fr;
+    grid-template-columns:1fr;
 }
 
 .sidebar{
@@ -319,6 +319,37 @@ body{
 #diagram{
     display:block;
 }
+
+#stationLabelOverlay{
+    position:sticky;
+    left:0;
+    top:0;
+    z-index:20;
+    width:72px;
+    height:0;
+    margin-bottom:0;
+    pointer-events:none;
+    overflow:visible;
+    background:#fff;
+    border-right:1px solid #e5e8eb;
+}
+
+.stationFixedLabel{
+    position:absolute;
+    right:8px;
+    white-space:nowrap;
+    text-align:right;
+    font-size:12px;
+    line-height:16px;
+    color:#252c32;
+    background:#fff;
+    padding-left:4px;
+}
+
+.stationFixedLabel.hidden{
+    color:#9ba3aa;
+}
+
 
 #empty{
     padding:30px;
@@ -408,10 +439,6 @@ tr.trainRow:hover{
         display:none;
     }
 
-    .main{
-        grid-template-columns:155px 1fr;
-    }
-
     .appHeader{
         height:52px;
     }
@@ -426,19 +453,6 @@ tr.trainRow:hover{
 }
 
 @media(max-width:600px){
-
-    .main{
-        grid-template-columns:128px 1fr;
-    }
-
-    .sidebarTitle{
-        font-size:10px;
-    }
-
-    .station{
-        font-size:10px;
-        padding:6px 4px;
-    }
 
     .brandMark{
         width:28px;
@@ -685,22 +699,11 @@ tr.trainRow:hover{
 
 <div class="main">
 
-    <aside class="sidebar">
-
-        <div
-            class="sidebarTitle"
-            id="sidebarTitle">
-            駅一覧
-        </div>
-
-        <div id="stationList"></div>
-
-    </aside>
-
-
     <section class="content">
 
         <div id="diagramContainer">
+
+            <div id="stationLabelOverlay" aria-hidden="true"></div>
 
             <div id="empty">
                 .oud2ファイルを読み込んでください。
@@ -763,17 +766,19 @@ const fileName=
 const diaSelect=
     document.getElementById("diaSelect");
 
-const stationList=
-    document.getElementById("stationList");
-
-const sidebarTitle=
-    document.getElementById("sidebarTitle");
-
 const diagramContainer=
     document.getElementById("diagramContainer");
 
+function syncStationLabelScroll(){
+    stationLabelOverlay.style.transform=
+        "translateY(-"+diagramContainer.scrollTop+"px)";
+}
+
 const diagram=
     document.getElementById("diagram");
+
+const stationLabelOverlay=
+    document.getElementById("stationLabelOverlay");
 
 const tableContainer=
     document.getElementById("tableContainer");
@@ -1952,15 +1957,6 @@ function setupUI(){
         dias.length===0;
 
 
-    sidebarTitle.textContent=
-        (route.name||"路線")+
-        "　"+
-        stations.length+
-        "駅";
-
-
-    renderStationList();
-
 
     legend.innerHTML="";
 
@@ -2009,59 +2005,6 @@ function setupUI(){
 }
 
 
-function renderStationList(){
-
-    stationList.innerHTML="";
-
-    const indices=
-        getVisibleStationIndices();
-
-    indices.forEach(
-        function(originalIndex,visibleIndex){
-
-            const station=
-                database.stations[
-                    originalIndex
-                ];
-
-            const div=
-                document.createElement(
-                    "div"
-                );
-
-            div.className="station";
-
-            div.innerHTML=
-                '<span class="stationNumber">'+
-                (visibleIndex+1)+
-                '</span>'+
-                '<span class="stationName">'+
-                escapeHtml(
-                    station.name
-                )+
-                '</span>';
-
-            div.addEventListener(
-                "click",
-                function(){
-
-                    scrollToStation(
-                        originalIndex
-                    );
-
-                }
-            );
-
-            stationList.appendChild(
-                div
-            );
-
-        }
-    );
-
-}
-
-
 /* =========================================================
    RENDER
 ========================================================= */
@@ -2071,9 +2014,6 @@ function render(){
     if(!database)return;
 
     trainInfo.style.display="none";
-
-    renderStationList();
-
 
     diagramContainer.style.display=
         "block";
@@ -2493,7 +2433,7 @@ function renderDiagram(){
 
 
     const left=
-        145*zoom;
+        72*zoom;
 
 
     const minuteWidth=
@@ -2525,6 +2465,24 @@ function renderDiagram(){
 
 
     diagram.innerHTML="";
+
+    stationLabelOverlay.innerHTML="";
+    stationLabelOverlay.style.width=left+"px";
+    stationLabelOverlay.style.height=height+"px";
+    stationLabelOverlay.style.marginBottom="-"+height+"px";
+
+    database.stations.forEach(function(station,index){
+        const label=document.createElement("div");
+        label.className="stationFixedLabel"+(station.hidden?" hidden":"");
+        label.textContent=station.name;
+        label.style.top=(stationY[index]-8*zoom)+"px";
+        label.style.right=(8*zoom)+"px";
+        label.style.fontSize=(12*zoom)+"px";
+        label.style.lineHeight=(16*zoom)+"px";
+        stationLabelOverlay.appendChild(label);
+    });
+
+    syncStationLabelScroll();
 
     empty.style.display="none";
 
@@ -2674,34 +2632,7 @@ function renderDiagram(){
             );
 
 
-            const text=
-                svgElement(
-                    "text",
-                    {
-                        x:
-                            left-
-                            8*zoom,
 
-                        y:
-                            y+
-                            4*zoom,
-
-                        "text-anchor":
-                            "end",
-
-                        "font-size":
-                            12*zoom,
-
-                        fill:
-                            station.hidden
-                                ? "#9ba3aa"
-                                : "#252c32"
-                    }
-                );
-
-
-            text.textContent=
-                station.name;
 
         }
     );
@@ -4246,6 +4177,13 @@ document
         }
 
     }
+);
+
+
+diagramContainer.addEventListener(
+    "scroll",
+    syncStationLabelScroll,
+    {passive:true}
 );
 
 
