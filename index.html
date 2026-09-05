@@ -91,6 +91,18 @@ body{
     padding:0 9px;
 }
 
+ .headerActions{position:relative;align-items:center;}
+.menuButton{width:34px;height:34px;border:1px solid #44515c;border-radius:8px;background:transparent;color:#fff;font-size:22px;line-height:1;cursor:pointer;}
+.menuButton:hover{background:#27333d;}
+.viewMenu{position:absolute;right:0;top:40px;z-index:1000;display:none;min-width:150px;padding:5px;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 8px 24px rgba(25,40,55,.18);}
+.viewMenu.open{display:block;}
+.viewMenu button{display:block;width:100%;padding:9px 11px;border:0;background:#fff;text-align:left;font-size:12px;color:var(--ink);border-radius:6px;cursor:pointer;}
+.viewMenu button:hover{background:var(--soft);}
+.viewMenu .menuSetting{border-top:1px solid var(--line);margin-top:4px;padding-top:5px;}
+.viewMenu .menuSetting label{display:flex;align-items:center;gap:7px;padding:8px 11px;font-size:12px;color:var(--ink);cursor:pointer;}
+.viewMenu .menuSetting input{margin:0;}
+.toolbarHidden{display:none !important;}
+
 .toolbar{
     min-height:58px;
     flex-shrink:0;
@@ -386,14 +398,70 @@ body{
     color:#6d7880;
 }
 
-#tableContainer{
-    width:100%;
-    height:100%;
-    overflow:auto;
-    padding:10px;
+#tableContainer{width:100%;height:100%;overflow:auto;padding:0;margin:0;box-sizing:border-box;}
+/* Timetable: station rows / train columns */
+.timeTable .stationHead{
+    position:sticky;
+    left:0;
+    z-index:3;
+    background:#fff;
+    white-space:nowrap;
+}
+.timeTable thead .stationHead{z-index:5;}
+.timeTable .trainHead{
+    white-space:nowrap;
+    min-width:58px;
+}
+.timeTable .timeCell{
+    text-align:center;
+    white-space:nowrap;
+}
+.timeTable .passedCell{
+    font-weight:700;
+}
+.timeTable .viaNoneCell{
+    text-align:center;
+}
+.viaNoneMark{
+    display:inline-block;
+    transform:rotate(90deg);
+    font-weight:600;
+    line-height:1;
 }
 
+.timeTableWrap{width:max-content;min-width:100%;margin:0;padding:0;box-sizing:border-box;}
+.timeTable{border-collapse:collapse;border-spacing:0;width:max-content;font-size:11px;background:#fff;margin:0;}
+.timeTable th,.timeTable td{border:1px solid #d9dee2;padding:3px 8px;white-space:nowrap;text-align:center;}
+.timeTable thead th{position:sticky;top:0;z-index:5;background:#f6f8fa;font-weight:700;}
+.timeTable th.stationHead{position:sticky;left:0;z-index:7;background:#fff;text-align:left;}
+.timeTable td.trainHead{position:sticky;left:0;z-index:6;background:#fff;text-align:left;font-weight:600;}
+.timeTable .timeCell{font-variant-numeric:tabular-nums;}
+.timeTable .emptyCell{color:#b0b7bd;}
+.timeTable .trackName{font-size:9px;line-height:1.1;color:inherit;opacity:.82;}
+.timeTable .timeStack{display:block;line-height:1.15;}
+/* 発着時はセル高を通常のほぼ2段分にし、仕切りを高さの50%へ固定 */
+.timeTable .timeStack.bothTimes{position:relative;height:24px;min-height:24px;line-height:1.15;}
+.timeTable .timeStack.bothTimes .timePart{position:absolute;left:0;right:0;height:12px;min-height:12px;display:flex;align-items:center;justify-content:center;line-height:12px;padding:0;margin:0;}
+.timeTable .timeStack.bothTimes .arrivalTime{top:0;}
+.timeTable .timeStack.bothTimes .departureTime{top:12px;}
+.timeTable .timeStack.bothTimes .arrDepDivider{position:absolute;left:0;right:0;top:12px;height:0;border-top:1px solid #d9dee2;line-height:0;}
+.timeTable .timePart{display:flex;align-items:center;justify-content:center;min-height:10px;line-height:1.15;}
+.timeTable .timePart.arrivalOnly{align-items:flex-start;padding-top:1px;}
+.timeTable .timePart.departureOnly{align-items:flex-end;padding-bottom:1px;}
+
+/* 時刻表の境界線：通常＝同一駅の着発、路線分岐だけ太線 */
+.timeTable tr.sameStationBoundary > th,
+.timeTable tr.sameStationBoundary > td{
+    border-top:1px solid #d9dee2 !important;
+}
+.timeTable tr.branchBoundary > th,
+.timeTable tr.branchBoundary > td,
+.timeTable tr.branchBoundaryAfter > th,
+.timeTable tr.branchBoundaryAfter > td{
+    border-top:4px solid #38444d !important;
+}
 table{
+    box-sizing:border-box;
     border-collapse:collapse;
     width:max-content;
     min-width:100%;
@@ -479,6 +547,7 @@ tr.trainRow:hover{
         padding:0 8px;
     }
 }
+.tableContainer{overflow:hidden;margin:0;padding:0;}
 </style>
 </head>
 
@@ -500,12 +569,18 @@ tr.trainRow:hover{
     </div>
 
     <div class="headerActions">
-        <button
-            class="ghostButton"
-            id="resetViewButton"
-            type="button">
-            表示をリセット
+        <button class="menuButton" id="viewMenuButton" type="button" aria-label="表示切替">
+            ⋮
         </button>
+        <div class="viewMenu" id="viewMenu">
+            <button type="button" data-menu-view="kudariTable">下り時刻表</button>
+            <button type="button" data-menu-view="noboriTable">上り時刻表</button>
+            <button type="button" data-menu-view="diagram">ダイヤグラム</button>
+            <div class="menuSetting">
+                <label><input type="checkbox" id="timetableColorToggle" checked> 時刻表をカラー表示</label>
+            </div>
+        </div>
+        <button class="ghostButton" id="resetViewButton" type="button">表示をリセット</button>
     </div>
 
 </header>
@@ -529,7 +604,7 @@ tr.trainRow:hover{
     </div>
 
 
-    <div class="controlGroup">
+    <div class="controlGroup" id="diaControl">
 
         <span class="controlLabel">
             ダイヤ
@@ -544,7 +619,7 @@ tr.trainRow:hover{
          方向
     ====================================================== -->
 
-    <div class="segmented">
+    <div class="segmented" id="directionControl">
 
         <button
             type="button"
@@ -574,24 +649,14 @@ tr.trainRow:hover{
          表示
     ====================================================== -->
 
-    <div class="segmented">
 
-        <button
-            type="button"
-            class="segment active"
-            data-view="diagram">
-            ダイヤ
-        </button>
-
-
-    </div>
 
 
     <!-- =====================================================
          ズーム
     ====================================================== -->
 
-    <div class="controlGroup compact">
+    <div class="controlGroup compact" id="zoomControl">
 
         <span class="controlLabel">
             拡大
@@ -628,7 +693,7 @@ tr.trainRow:hover{
          横比率
     ====================================================== -->
 
-    <div class="controlGroup compact ratioControl">
+    <div class="controlGroup compact ratioControl" id="horizontalRatioControl">
 
         <span class="controlLabel">
             横縮尺
@@ -659,7 +724,7 @@ tr.trainRow:hover{
          縦比率
     ====================================================== -->
 
-    <div class="controlGroup compact ratioControl">
+    <div class="controlGroup compact ratioControl" id="verticalRatioControl">
 
         <span class="controlLabel">
             縦縮尺
@@ -735,6 +800,30 @@ tr.trainRow:hover{
 
 
 <script>
+
+
+/* =========================================================
+   BRANCH ROW DEDUPLICATION
+========================================================= */
+function dedupeStationRows(rows){
+    const result=[];
+    const seen=new Set();
+
+    for(const row of (rows||[])){
+        const index=
+            row && Number.isInteger(row.stationIndex)
+                ? row.stationIndex
+                : null;
+
+        if(index===null) continue;
+        if(seen.has(index)) continue;
+
+        seen.add(index);
+        result.push(row);
+    }
+
+    return result;
+}
 
 /* =========================================================
    DATABASE
@@ -1104,82 +1193,80 @@ function parseStations(lines){
 
         if(lines[i]!=="Eki.")continue;
 
-        const result=
-            readSimpleBlock(lines,i);
+        const o={};
+        const trackNames=[];
+        let j=i+1;
 
-        const o=result.object;
+        /*
+         * Eki. ブロックは EkiTrack2. などの
+         * 子ブロックを含むため、単純な readSimpleBlock では
+         * 番線情報より後ろを読み切れない。
+         * 次の Eki. までを駅ブロックとして走査する。
+         */
+        for(;j<lines.length;j++){
+
+            if(lines[j]==="Eki.")break;
+
+            const pair=parseKeyValue(lines[j]);
+            if(pair){
+
+                if(pair.key==="TrackName"){
+                    trackNames.push(pair.value);
+                }else{
+                    o[pair.key]=pair.value;
+                }
+
+            }
+
+        }
 
         if(!o.Ekimei)continue;
 
         let branchCoreIndex=null;
-
         if(
             o.BrunchCoreEkiIndex!==undefined &&
-            /^\d+$/.test(
-                String(
-                    o.BrunchCoreEkiIndex
-                ).trim()
-            )
+            /^\d+$/.test(String(o.BrunchCoreEkiIndex).trim())
         ){
-
-            branchCoreIndex=
-                Number(
-                    o.BrunchCoreEkiIndex
-                );
-
+            branchCoreIndex=Number(o.BrunchCoreEkiIndex);
         }
 
         let loopOriginIndex=null;
-
         if(
             o.LoopOriginEkiIndex!==undefined &&
-            /^\d+$/.test(
-                String(
-                    o.LoopOriginEkiIndex
-                ).trim()
-            )
+            /^\d+$/.test(String(o.LoopOriginEkiIndex).trim())
         ){
-
-            loopOriginIndex=
-                Number(
-                    o.LoopOriginEkiIndex
-                );
-
+            loopOriginIndex=Number(o.LoopOriginEkiIndex);
         }
 
         stations.push({
-
             index:stations.length,
-
             name:o.Ekimei,
-
-            timeFormat:
-                o.Ekijikokukeisiki||"",
-
-            scale:
-                o.Ekikibo||"",
-
-            downMain:
-                o.DownMain||"0",
-
-            upMain:
-                o.UpMain||"0",
-
-            hidden:
-                o.Hidden==="1",
-
+            timeFormat:o.Ekijikokukeisiki||"",
+            scale:o.Ekikibo||"",
+            downMain:o.DownMain||"0",
+            upMain:o.UpMain||"0",
+            hidden:o.Hidden==="1",
             branchCoreIndex,
-
             loopOriginIndex,
 
-            raw:o
+            /* 駅側に定義されている番線名をそのまま保持 */
+            trackNames,
 
+            /* 時刻表で番線を出すか */
+            trackDisplayKudari:o.JikokuhyouTrackDisplayKudari==="1",
+            trackDisplayNobori:o.JikokuhyouTrackDisplayNobori==="1",
+            trackOmit:o.JikokuhyouTrackOmit==="1",
+
+            /* カスタマイズ時刻表の着/発表示設定（左=着、右=発） */
+            timetableDisplayKudari:(String(o.JikokuhyouJikokuDisplayKudari||"").split(",").map(v=>v.trim()==="1")),
+            timetableDisplayNobori:(String(o.JikokuhyouJikokuDisplayNobori||"").split(",").map(v=>v.trim()==="1")),
+
+            raw:o
         });
 
-        i=result.end;
+        i=j-1;
 
     }
-
 
     stations.forEach(function(station){
 
@@ -1191,9 +1278,7 @@ function parseStations(lines){
                 station.branchCoreIndex===station.index
             )
         ){
-
             station.branchCoreIndex=null;
-
         }
 
     });
@@ -1201,7 +1286,6 @@ function parseStations(lines){
     return stations;
 
 }
-
 
 /* =========================================================
    TRAIN TYPES
@@ -1459,6 +1543,8 @@ function parseEkiJikoku(value){
 
             let arrival=null;
             let departure=null;
+            let single=false;
+            let singleTime=null;
 
             const hasSlash=
                 timePart.includes("/");
@@ -1505,8 +1591,10 @@ function parseEkiJikoku(value){
                                 timePart
                             );
 
-                        arrival=t;
-                        departure=t;
+                        arrival=null;
+                        departure=null;
+                        single=true;
+                        singleTime=t;
 
                     }
 
@@ -1530,6 +1618,9 @@ function parseEkiJikoku(value){
 
                 departure,
 
+                single,
+                singleTime,
+
                 track,
 
                 raw:cell
@@ -1541,11 +1632,84 @@ function parseEkiJikoku(value){
 }
 
 
+function normalizeSingleTime(cell, station, direction){
+    if(!cell || !cell.single || cell.singleTime===null || !station) return cell;
+    const t=cell.singleTime;
+
+    /*
+     * 単独時刻は「実際に入っている1時刻」だけを表示する。
+     * 特に発着駅(Jikokukeisiki_Hatsuchaku)でも、単独の発時刻を
+     * 着時刻まで複製しない。
+     *
+     * カスタマイズ時刻表の着/発表示設定を優先し、
+     * 片方だけ表示対象なら、その側の時刻として扱う。
+     * 両方が表示対象の場合は、駅の端点位置から始発/終着を判断し、
+     * それでも判定できない場合は発時刻として1件だけ保持する。
+     */
+    const flags = direction === "Kudari"
+        ? station.timetableDisplayKudari
+        : station.timetableDisplayNobori;
+    const showArrival = !!(flags && flags[0]===true);
+    const showDeparture = !!(flags && flags[1]===true);
+
+    switch(station.timeFormat){
+        case "Jikokukeisiki_Hatsu":
+            cell.arrival=null;
+            cell.departure=t;
+            break;
+
+        case "Jikokukeisiki_NoboriChaku":
+            if(direction === "Nobori"){
+                cell.arrival=t; cell.departure=null;
+            }else{
+                cell.arrival=null; cell.departure=t;
+            }
+            break;
+
+        case "Jikokukeisiki_KudariChaku":
+            if(direction === "Kudari"){
+                cell.arrival=t; cell.departure=null;
+            }else{
+                cell.arrival=null; cell.departure=t;
+            }
+            break;
+
+        case "Jikokukeisiki_Hatsuchaku":
+            /* 単独時刻を着発の両方へ複製しない */
+            if(showDeparture && !showArrival){
+                cell.arrival=null;
+                cell.departure=t;
+            }else if(showArrival && !showDeparture){
+                cell.arrival=t;
+                cell.departure=null;
+            }else{
+                /* 両方表示設定でも、単独実時刻は1件だけ */
+                cell.arrival=null;
+                cell.departure=t;
+            }
+            break;
+
+        default:
+            cell.arrival=t;
+            cell.departure=null;
+            break;
+    }
+
+    cell.passed=false;
+    return cell;
+}
+function normalizeTrainTimes(train, stations){
+    if(!train || !Array.isArray(train.times)) return;
+    train.times.forEach(function(cell,index){
+        if(cell) normalizeSingleTime(cell, stations[index], train.direction);
+    });
+}
+
 /* =========================================================
    DIAS
 ========================================================= */
 
-function parseDias(lines){
+function parseDias(lines, stations){
 
     const dias=[];
 
@@ -1623,6 +1787,8 @@ function parseDias(lines){
 
                     };
 
+                    normalizeTrainTimes(train, stations);
+
                     Object.keys(o)
                         .forEach(function(key){
 
@@ -1688,25 +1854,15 @@ function parseDias(lines){
 
 function parseOudFile(text){
 
-    const lines=
-        splitLines(text);
+    const lines=splitLines(text);
+    const stations=parseStations(lines);
 
     return{
-
-        route:
-            parseRouteInfo(lines),
-
-        stations:
-            parseStations(lines),
-
-        types:
-            parseTrainTypes(lines),
-
-        dias:
-            parseDias(lines),
-
+        route:parseRouteInfo(lines),
+        stations,
+        types:parseTrainTypes(lines),
+        dias:parseDias(lines, stations),
         rawText:text
-
     };
 
 }
@@ -2006,22 +2162,366 @@ function setupUI(){
 
 
 /* =========================================================
+   VIEW MENU / TIMETABLE
+========================================================= */
+
+const viewMenuButton=document.getElementById("viewMenuButton");
+const viewMenu=document.getElementById("viewMenu");
+const timetableColorToggle=document.getElementById("timetableColorToggle");
+let timetableColorEnabled=true;
+
+timetableColorToggle.addEventListener("change",function(){
+    timetableColorEnabled=this.checked;
+    if(database && currentView!=="diagram")render();
+});
+
+viewMenuButton.addEventListener("click",function(e){
+    e.stopPropagation();
+    viewMenu.classList.toggle("open");
+});
+
+document.addEventListener("click",function(){
+    viewMenu.classList.remove("open");
+});
+
+viewMenu.querySelectorAll("button[data-menu-view]").forEach(function(button){
+    button.addEventListener("click",function(e){
+        e.stopPropagation();
+        currentView=this.dataset.menuView;
+        viewMenu.classList.remove("open");
+        render();
+    });
+});
+
+function renderTimeTable(direction){
+    if(!database)return;
+    const dia=database.dias[Number(diaSelect.value)];
+    if(!dia)return;
+
+    const trains=dia.trains.filter(function(train){
+        return train.direction===direction;
+    });
+
+    const stations=database.stations;
+
+    function validBranchIndex(station){
+        return station && Number.isInteger(station.branchCoreIndex) &&
+            station.branchCoreIndex>=0 && station.branchCoreIndex<stations.length &&
+            station.branchCoreIndex!==station.index;
+    }
+
+    function branchBoundaryBefore(index){
+        if(index<=0)return false;
+        const left=stations[index-1], right=stations[index];
+        if(!left || !right)return false;
+
+        /* 分離型：下り着の直後に、同じ基幹駅を指す上り着駅が来る。 */
+        if(validBranchIndex(right) &&
+           right.branchCoreIndex < index &&
+           right.timeFormat === "Jikokukeisiki_NoboriChaku" &&
+           left.timeFormat === "Jikokukeisiki_KudariChaku"){
+            return true;
+        }
+
+        /* 合流型：上り着の派生駅の直後に発着の基幹駅が来る。 */
+        if(validBranchIndex(left) &&
+           left.branchCoreIndex < index &&
+           left.timeFormat === "Jikokukeisiki_NoboriChaku" &&
+           right.timeFormat === "Jikokukeisiki_Hatsuchaku"){
+            return true;
+        }
+
+        /* 始発側V字：路線の先頭駅そのものが上り着駅で、
+           後方の基幹駅をBrunchCoreEkiIndexで参照する。 */
+        if(index===1){
+            const first=stations[0];
+            if(validBranchIndex(first) &&
+               first.branchCoreIndex>first.index &&
+               first.timeFormat === "Jikokukeisiki_NoboriChaku"){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function branchBoundaryAfter(index){
+        if(index<0 || index>=stations.length-1)return false;
+        const left=stations[index], right=stations[index+1];
+        if(!left || !right)return false;
+
+        /* 合流型：下り着の派生駅から発着の基幹駅へ。 */
+        if(validBranchIndex(left) &&
+           left.branchCoreIndex > index &&
+           left.timeFormat === "Jikokukeisiki_KudariChaku" &&
+           right.timeFormat === "Jikokukeisiki_Hatsuchaku"){
+            return true;
+        }
+
+        /* 終着側V字：路線の末尾駅そのものが下り着駅で、
+           前方の基幹駅をBrunchCoreEkiIndexで参照する。 */
+        if(index===stations.length-2){
+            const last=stations[stations.length-1];
+            if(validBranchIndex(last) &&
+               last.branchCoreIndex<last.index &&
+               last.timeFormat === "Jikokukeisiki_KudariChaku"){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function sameStationBoundary(index){
+        if(index<=0)return false;
+        const a=stations[index-1];
+        const b=stations[index];
+        return !!(
+            a && b &&
+            a.name===b.name &&
+            a.index!==b.index
+        );
+    }
+
+    /*
+     * 始発側V字分岐。
+     * 例：
+     *   新府 ─────────＼
+     *   新府本町 ─ 宮前 ─ 青葉町
+     *
+     *   → 新府
+     *      青葉町
+     *      ━━━━━━━
+     *      新府本町
+     *      宮前
+     *      青葉町
+     *      ━━━━━━━
+     *      青葉町
+     *
+     * BrunchCoreEkiIndex は「分岐側駅」から「基幹駅」を指す。
+     * 始発側では、最初の駅を含む枝、分岐側の駅列、基幹駅以降の本線を
+     * 3ブロックとして表示する。
+     */
+    /*
+     * 始発側分岐。
+     *
+     * 例:
+     *   新府 ─────────＼
+     *   新府本町 ─ 宮前 ─ 青葉町
+     *
+     * 駅配列上は「本線の始発駅 → 分岐側駅 → … → 基幹駅」と
+     * 並んでいるため、BrunchCoreEkiIndex が自駅より後方を指す
+     * 分岐側駅を見つけたら、駅配列を3ブロックに分けて表示する。
+     * 発着の判定はここでは一切行わない。
+     */
+    let displayRows=stations.map(function(st){
+        return {station:st, boundaryBefore:false, duplicate:false};
+    });
+
+    const startSideBranch=stations
+        .slice(0, Math.max(1, Math.floor(stations.length/2)))
+        .find(function(st){
+            return validBranchIndex(st) &&
+                st.branchCoreIndex>st.index &&
+                st.index>0;
+        });
+
+    if(startSideBranch){
+        const b=startSideBranch.index;
+        const c=startSideBranch.branchCoreIndex;
+
+        /* 第1ブロック：本線の始発駅 → 分岐側の終点
+         *
+         * 始発側V字では、BrunchCoreEkiIndex の c は
+         * 「もう一方の本線側で使う基幹駅」。
+         * 第1ブロックの終点は c ではなく、分岐側駅 b。
+         *
+         * 例:
+         *   新府(0) ─────＼
+         *   青葉町(1)       ← b
+         *   新府本町(2) ─ 宮前(3) ─ 青葉町(6) ← c
+         *
+         * → 新府 / 青葉町(1) / 境界
+         */
+        const firstBlock=[
+            {station:stations[0], boundaryBefore:false, duplicate:false},
+            {station:stations[b], boundaryBefore:false, duplicate:false}
+        ];
+
+        /* 第2ブロック：分岐側の始発駅 → 基幹駅 */
+        const secondBlock=[];
+        for(let i=b+1;i<=c;i++){
+            secondBlock.push({
+                station:stations[i],
+                boundaryBefore:i===b+1,
+                duplicate:i===c
+            });
+        }
+
+        /* 第3ブロック：基幹駅から先
+         *
+         * 第2ブロックの末尾ですでに stations[c] を表示しているため、
+         * 第3ブロックでは c をもう一度生成しない。
+         *
+         * これにより、
+         *   … 青葉町(6)
+         *   ━━━━━━━
+         *   青葉町(6)
+         *
+         * という不自然な重複＋太線を防ぐ。
+         * 第2→第3ブロックの境界そのものも、同一駅の再掲ではないので
+         * 始発側V字ではここに境界線を置かない。
+         */
+        const thirdBlock=[];
+        for(let i=c+1;i<stations.length;i++){
+            thirdBlock.push({
+                station:stations[i],
+                boundaryBefore:false,
+                duplicate:false
+            });
+        }
+
+        displayRows=firstBlock.concat(secondBlock,thirdBlock);
+    }
+
+    let html='<div class="timeTableWrap"><table class="timeTable"><thead><tr>';
+    html+='<th class="stationHead">駅名</th>';
+
+    trains.forEach(function(train){
+        const type=database.types[train.typeIndex]||{name:"不明",textColor:"#333333"};
+        const title=train.name||type.name||"";
+        const colorStyle=timetableColorEnabled ? ' style="color:'+escapeHtml(type.textColor||"#333333")+'"' : '';
+        html+='<th class="trainHead"'+colorStyle+'>'+escapeHtml(title)+'</th>';
+    });
+    html+='</tr></thead><tbody>';
+
+    displayRows.forEach(function(row,displayIndex){
+        const station=row.station;
+        const stationIndex=station.index;
+        let rowClass='';
+        if(row.boundaryBefore || branchBoundaryBefore(stationIndex)) rowClass='branchBoundary';
+        else if(sameStationBoundary(stationIndex)) rowClass='sameStationBoundary';
+        else if(branchBoundaryAfter(stationIndex)) rowClass='branchBoundaryAfter';
+
+        html+='<tr class="'+rowClass+'">';
+        html+='<th class="stationHead">'+escapeHtml(station.name)+'</th>';
+
+        trains.forEach(function(train){
+            const time=train.times[stationIndex];
+            let content='';
+            let cls='timeCell';
+            const type=database.types[train.typeIndex]||{textColor:'#333333'};
+            const cellColor=timetableColorEnabled ? (type.textColor||'#333333') : '';
+            const cellStyle=cellColor ? ' style="color:'+escapeHtml(cellColor)+'"' : '';
+
+            if(time && time.exists===true){
+                const isActualSingleTime = time.single===true &&
+                    time.singleTime!==null && time.singleTime!==undefined;
+                if(time.passed===true && !isActualSingleTime){
+                    content='レ';
+                    cls+=' passedCell';
+                }else{
+                    /*
+                     * 発着の表示可否はカスタマイズ時刻表の設定を正とする。
+                     * 実データに存在しない着/発は補完しない。
+                     * 着だけなら上段、発だけなら下段、両方なら上下に分ける。
+                     */
+                    const displayFlags = direction === "Kudari"
+                        ? station.timetableDisplayKudari
+                        : station.timetableDisplayNobori;
+                    const showArrival = displayFlags && displayFlags[0] === true &&
+                        time.arrival!==null && time.arrival!==undefined;
+                    const showDeparture = displayFlags && displayFlags[1] === true &&
+                        time.departure!==null && time.departure!==undefined;
+
+                    if(showArrival || showDeparture){
+                        if(showArrival && showDeparture){
+                            content='<span class="timeStack bothTimes">'+
+                                '<span class="timePart arrivalTime">'+formatTime(time.arrival)+'</span>'+
+                                '<span class="arrDepDivider"></span>'+
+                                '<span class="timePart departureTime">'+formatTime(time.departure)+'</span>'+
+                                '</span>';
+                        }else if(showArrival){
+                            content='<span class="timeStack"><span class="timePart">'+formatTime(time.arrival)+'</span></span>';
+                        }else{
+                            content='<span class="timeStack"><span class="timePart">'+formatTime(time.departure)+'</span></span>';
+                        }
+                    }
+
+
+                    if(
+                        station.trackOmit!==true &&
+                        (direction==="Kudari" ? station.trackDisplayKudari : station.trackDisplayNobori) &&
+                        time.track!==null && time.track!==undefined &&
+                        station.trackNames[time.track]
+                    ){
+                        content+='<br><span class="trackName">'+escapeHtml(station.trackNames[time.track])+'</span>';
+                    }
+                }
+            }else{
+                let first=-1,last=-1;
+                for(let k=0;k<train.times.length;k++){
+                    if(hasActualTime(train.times[k]) || train.times[k]?.passed===true){
+                        if(first<0)first=k;
+                        last=k;
+                    }
+                }
+                if(first>=0 && stationIndex>first && stationIndex<last){
+                    content='<span class="viaNoneMark">＝</span>';
+                    cls+=' viaNoneCell';
+                }
+            }
+
+            html+='<td class="'+cls+'"'+cellStyle+'>'+content+'</td>';
+        });
+
+        html+='</tr>';
+    });
+
+    html+='</tbody></table></div>';
+    tableContainer.innerHTML=html;
+}
+
+/* =========================================================
    RENDER
 ========================================================= */
 
+function updateToolbarForView(){
+
+    const isDiagram = currentView === "diagram";
+
+    [
+        "diaControl",
+        "directionControl",
+        "zoomControl",
+        "horizontalRatioControl",
+        "verticalRatioControl"
+    ].forEach(function(id){
+        const el=document.getElementById(id);
+        if(el) el.classList.toggle("toolbarHidden", !isDiagram);
+    });
+
+}
+
+
 function render(){
+
+    updateToolbarForView();
 
     if(!database)return;
 
     trainInfo.style.display="none";
 
-    diagramContainer.style.display=
-        "block";
+    if(currentView==="diagram"){
+        diagramContainer.style.display="block";
+        tableContainer.style.display="none";
+        renderDiagram();
+        return;
+    }
 
-    tableContainer.style.display=
-        "none";
-
-    renderDiagram();
+    diagramContainer.style.display="none";
+    tableContainer.style.display="block";
+    renderTimeTable(
+        currentView==="noboriTable" ? "Nobori" : "Kudari"
+    );
 
 }
 
@@ -2797,7 +3297,8 @@ function buildTrainGroups(train){
 function interpolateTrainGroup(
     group,
     stationY,
-    trainDirection
+    trainDirection,
+    sectionTimes
 ){
 
     const result=
@@ -2890,10 +3391,19 @@ function interpolateTrainGroup(
     /*
      * 通過駅の補間。
      *
-     * 上りは駅番号が逆方向なので、
-     * 表示駅番号へ変換してからY比率を取る。
+     * 下りは駅番号が増加、上りは駅番号が減少する。
+     * ここでは元の駅番号順をそのまま使い、方向に応じて
+     * ループを進めることで、上りでも正しい経路上の区間だけを
+     * 基準時間として積算する。
      *
-     * 이것が上り反転問題の核心。
+     * 例:
+     *   A-B = 10分
+     *   B-D = 15分
+     *   A 10:00 → D 10:15
+     *
+     * 基準時間比で B は 10:06。
+     *
+     * ★ダイヤ描画専用。時刻表・元の時刻データは変更しない。
      */
 
     for(
@@ -2917,7 +3427,7 @@ function interpolateTrainGroup(
 
 
         if(
-            index2-index1<=1
+            Math.abs(index2-index1)<=1
         ){
 
             continue;
@@ -2942,40 +3452,6 @@ function interpolateTrainGroup(
         }
 
 
-        const displayIndex1=
-            displayStationIndex(
-                leftPoint.stationIndex,
-                trainDirection
-            );
-
-
-        const displayIndex2=
-            displayStationIndex(
-                rightPoint.stationIndex,
-                trainDirection
-            );
-
-
-        const y1=
-            stationY[
-                displayIndex1
-            ];
-
-        const y2=
-            stationY[
-                displayIndex2
-            ];
-
-
-        const yDiff=
-            y2-y1;
-
-
-        if(yDiff===0){
-            continue;
-        }
-
-
         let diff=
             end-start;
 
@@ -2985,43 +3461,167 @@ function interpolateTrainGroup(
         }
 
 
+        if(
+            !Number.isFinite(diff) ||
+            diff<=0
+        ){
+            continue;
+        }
+
+
+        const step=
+            index2>index1
+                ? 1
+                : -1;
+
+
+        const weights=[];
+        let totalBase=0;
+
+
+        /*
+         * 列車が実際に通る駅間だけを積算する。
+         *
+         * 下り: i, i+1
+         * 上り: i, i-1
+         *
+         * sectionTimes は常に下り基準の駅番号で保持されているため、
+         * 上りでも Math.min(A,B) を使えば同じ駅間を参照できる。
+         */
         for(
-            let i=index1+1;
-            i<index2;
-            i++
+            let i=index1;
+            i!==index2;
+            i+=step
         ){
 
-            const originalIndex=
+            const nextIndex=
+                i+step;
+
+            const stationA=
                 group[i].stationIndex;
 
+            const stationB=
+                group[nextIndex].stationIndex;
 
-            const displayIndex=
-                displayStationIndex(
-                    originalIndex,
-                    trainDirection
+            let weight=null;
+
+
+            if(
+                Array.isArray(sectionTimes)
+            ){
+
+                const lo=Math.min(
+                    stationA,
+                    stationB
                 );
 
+                if(
+                    lo>=0 &&
+                    lo<sectionTimes.length &&
+                    Number.isFinite(
+                        Number(sectionTimes[lo])
+                    ) &&
+                    Number(sectionTimes[lo])>0
+                ){
+                    weight=
+                        Number(sectionTimes[lo]);
+                }
 
-            const ratio=
-                (
-                    stationY[displayIndex]-y1
-                )/yDiff;
+            }
 
 
-            const minute=
-                start+
-                diff*ratio;
+            /*
+             * 基準時間が取得できない区間だけ、元の描画用Y距離を使用。
+             * これも元データには一切書き戻さない。
+             */
+            if(weight===null){
+
+                const displayA=
+                    displayStationIndex(
+                        stationA,
+                        trainDirection
+                    );
+
+                const displayB=
+                    displayStationIndex(
+                        stationB,
+                        trainDirection
+                    );
+
+                const yA=stationY[displayA];
+                const yB=stationY[displayB];
+
+                if(
+                    Number.isFinite(yA) &&
+                    Number.isFinite(yB) &&
+                    yA!==yB
+                ){
+                    weight=Math.abs(yB-yA);
+                }else{
+                    weight=1;
+                }
+
+            }
 
 
-            result[i]={
+            weights.push(weight);
+            totalBase+=weight;
 
-                arrival:minute,
+        }
 
-                departure:minute,
 
-                actual:false
+        if(
+            !Number.isFinite(totalBase) ||
+            totalBase<=0
+        ){
+            continue;
+        }
 
-            };
+
+        let accumulated=0;
+
+
+        /*
+         * 実際の駅列の途中にある通過駅へ時刻を入れる。
+         * 上りなら i-1 側へ結果を書き込むので、
+         * 駅番号を逆転させる必要はない。
+         */
+        let current=index1;
+        let weightIndex=0;
+
+        while(current!==index2){
+
+            const nextIndex=
+                current+step;
+
+            accumulated+=
+                weights[weightIndex];
+
+            weightIndex++;
+
+
+            if(nextIndex!==index2){
+
+                const ratio=
+                    accumulated/totalBase;
+
+                const minute=
+                    start+
+                    diff*ratio;
+
+                result[nextIndex]={
+
+                    arrival:minute,
+
+                    departure:minute,
+
+                    actual:false
+
+                };
+
+            }
+
+            current=nextIndex;
 
         }
 
